@@ -1,0 +1,69 @@
+{
+    "name": "vscode-deepscan",
+    "displayName": "DeepScan",
+    "description": "Integrates DeepScan into VS Code.",
+    "version": "1.1.1",
+    "author": "DeepScan",
+    "publisher": "DeepScan",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/deepscan/vscode-deepscan.git"
+    },
+    "icon": "deepscan_icon.png",
+    "engines": {
+        "vscode": "^1.8.0"
+    },
+    "categories": [
+        "Linters"
+    ],
+    "activationEvents": [
+        "*"
+    ],
+    "main": "./out/src/extension",
+    "contributes": {
+        "configuration": {
+            "type": "object",
+            "title": "DeepScan",
+            "properties": {
+                "deepscan.enable": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Control whether or not DeepScan is enabled for JavaScript files."
+                },
+                "deepscan.server": {
+                    "type": "string",
+                    "default": "https://deepscan.io",
+                    "description": "DeepScan server url."
+                },
+                "deepscan.ignoreConfirmWarning": {
+                    "type": "boolean",
+                    "description": "Ignores the confirm warning",
+                    "default": false
+                }
+            }
+        },
+        "commands": [{
+            "category": "DeepScan",
+            "command": "deepscan.inspect",
+            "title": "Inspect Code"
+        }]
+    },
+    "scripts": {
+        "vscode:prepublish": "tsc -p ./",
+        "compile": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "node ./node_modules/vscode/bin/test"
+    },
+    "dependencies": {
+        "lodash": "^4.17.4",
+        "vscode-languageclient": "^3.3.0-alpha.5"
+    },
+    "devDependencies": {
+        "typescript": "^2.3.2",
+        "vscode": "^1.0.0",
+        "mocha": "^2.3.3",
+        "@types/node": "^6.0.40",
+        "@types/mocha": "^2.2.32"
+    }
+}
