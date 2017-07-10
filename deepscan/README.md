@@ -1,16 +1,22 @@
 # VS Code DeepScan extension
 
-Extension to integrate [DeepScan](https://deepscan.io) into VS Code.
+This is a VS Code extension to integrate [DeepScan](https://deepscan.io).
 
-DeepScan is a JavaScript code inspection tool that helps you to find problems in your code.
+DeepScan is a cutting-edge JavaScript code inspection tool that helps you to find bugs and quality issues more precisely by data-flow analysis. You can also use it for React because DeepScan delivers [React specific rules](https://deepscan.io/docs/rules/#react).
 
-**Note:**
+> **Note:**
+> To use this extension, you should confirm that your code is transferred to the DeepScan server for inspection when you save your changes.
+> You can confirm it by pressing the Confirm button that appears when restarting VS Code after the installation.
+>
+> Note that your code is completely deleted from the server right after the inspection.
 
-To use this extension, you should confirm that your code is transferred to the DeepScan server for inspection when you save your changes.
+![Navigation](resources/preview.png)
 
-You can confirm it by pressing the Confirm button that appears when you re-start VS Code after the installation.
+## How it works
 
-Note that your code is completely deleted from the server right after the inspection.
+- Report issues in Problems panel when you open a JS or JSX file and save it.
+- Highlight issues in the code
+- Show a rule description using a code action. When you click the light bulb of the issue, you can see the detailed description of the rule and grasp what's the problem.
 
 ## Settings Options
 

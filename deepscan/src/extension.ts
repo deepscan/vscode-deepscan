@@ -5,6 +5,7 @@
 'use strict';
 
 import * as _ from 'lodash';
+import * as fs from 'fs';
 import * as path from 'path';
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
@@ -17,7 +18,10 @@ import {
     RevealOutputChannelOn, DocumentSelector, VersionedTextDocumentIdentifier, ExecuteCommandRequest, ExecuteCommandParams
 } from 'vscode-languageclient';
 
+import showRuleCodeActionProvider from './showRuleCodeActionProvider';
+
 const packageJSON = vscode.extensions.getExtension('DeepScan.vscode-deepscan').packageJSON;
+
 
 namespace CommandIds {
     export const showOutput: string = 'deepscan.showOutputView';
@@ -196,6 +200,19 @@ async function activateClient(context: vscode.ExtensionContext) {
             vscode.window.showErrorMessage('Failed to inspect. Please consider opening an issue with steps to reproduce.');
         });
     });
+
+    let fsPath = path.resolve(context.extensionPath, 'resources', 'deepscan-rules.json');
+    let rules = [];
+    try {
+        let rulesObj = JSON.parse(fs.readFileSync(fsPath).toString());
+        rules = rulesObj.rules;
+    } catch (e) {
+        vscode.window.showWarningMessage(`Can't read or parse rule definitions: ${e.message}`);
+    }
+
+    // Register 'Show rule'
+    const showRuleAction = new showRuleCodeActionProvider(context, rules);
+    context.subscriptions.push(vscode.languages.registerCodeActionsProvider(clientOptions.documentSelector, showRuleAction));
 
     context.subscriptions.push(
         new SettingMonitor(client, 'deepscan.enable').start(),

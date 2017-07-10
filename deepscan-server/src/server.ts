@@ -203,7 +203,8 @@ function makeDiagnostic(alarm): Diagnostic {
         range: {
             start: { line: startLine, character: startChar },
             end: { line: endLine, character: endChar }
-        }
+        },
+        code: alarm.name
     };
 }
 

@@ -1,8 +1,8 @@
 {
     "name": "vscode-deepscan",
     "displayName": "DeepScan",
-    "description": "Integrates DeepScan into VS Code.",
-    "version": "1.1.2",
+    "description": "Detect JavaScript and React bugs and quality issues more precisely",
+    "version": "1.2.0",
     "author": "DeepScan",
     "publisher": "DeepScan",
     "license": "MIT",
@@ -63,6 +63,7 @@
     },
     "dependencies": {
         "lodash": "^4.17.4",
+        "showdown": "^1.7.1",
         "vscode-languageclient": "^3.3.0-alpha.5"
     },
     "devDependencies": {
