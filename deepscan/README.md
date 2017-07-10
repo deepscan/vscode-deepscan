@@ -10,7 +10,7 @@ DeepScan is a cutting-edge JavaScript code inspection tool that helps you to fin
 >
 > Note that your code is completely deleted from the server right after the inspection.
 
-![Navigation](resources/preview.png)
+![Navigation](deepscan/resources/preview.png)
 
 ## How it works
 
