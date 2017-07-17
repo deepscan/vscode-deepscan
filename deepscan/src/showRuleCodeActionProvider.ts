@@ -27,6 +27,10 @@ export default class showRuleCodeActionProvider implements vscode.CodeActionProv
 
     public provideCodeActions(document: vscode.TextDocument, range: vscode.Range, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.Command[] {
         let diagnostic: vscode.Diagnostic = context.diagnostics[0];
+
+        if ("deepscan" !== diagnostic.source)
+            return;
+
         let text = document.getText(diagnostic.range);
         let commands: vscode.Command[] = [];
         commands.push({

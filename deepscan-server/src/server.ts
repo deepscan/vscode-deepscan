@@ -135,7 +135,14 @@ connection.onDidChangeConfiguration((params) => {
     settings.deepscan = settings.deepscan || {};
 
     if (settings.deepscan.server) {
+        let oldServer = deepscanServer;
         deepscanServer = getServerUrl(settings.deepscan.server);
+        if (deepscanServer === oldServer) {
+            return;
+        }
+        connection.console.info(`Configuration changed: ${deepscanServer}`);
+        // Reinspect any open text documents
+        documents.all().forEach(inspect);
     }
 });
 
@@ -174,6 +181,8 @@ function inspect(identifier: VersionedTextDocumentIdentifier) {
             connection.sendNotification(StatusNotification.type, { state: diagnostics.length > 0 ? Status.warn : Status.ok });
         } else {
             connection.console.error('Failed to inspect: ' + error.message);
+            // Clear problems
+            connection.sendDiagnostics({ uri: textDocument.uri, diagnostics: [] });
             connection.sendNotification(StatusNotification.type, { state: Status.fail });
         }
     });
@@ -199,7 +208,7 @@ function makeDiagnostic(alarm): Diagnostic {
     return {
         message: message,
         severity: convertSeverity(alarm.impact),
-        source: 'DeepScan',
+        source: 'deepscan',
         range: {
             start: { line: startLine, character: startChar },
             end: { line: endLine, character: endChar }

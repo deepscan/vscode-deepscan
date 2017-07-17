@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.2.1
+
+- Inspect open text documents when `deepscan.server` configuration is changed.
+- Show rule description only for a DeepScan diagnostic.
+- Change the source of diagnostic to "deepscan".
+
 ## 1.2.0
 
 - Show rule description when the user clicks the light bulb of the problem.

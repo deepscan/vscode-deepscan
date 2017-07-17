@@ -80,11 +80,11 @@ async function activateClient(context: vscode.ExtensionContext) {
         }
         statusBarItem.tooltip = tooltip;
         deepscanStatus = status;
-        udpateStatusBar(vscode.window.activeTextEditor);
+        updateStatusBar(vscode.window.activeTextEditor);
     }
 
-    function udpateStatusBar(editor: vscode.TextEditor): void {
-        showStatusBarItem(serverRunning && (editor && _.includes(languageIds, editor.document.languageId)));
+    function updateStatusBar(editor: vscode.TextEditor): void {
+        showStatusBarItem(serverRunning && (deepscanStatus === Status.fail || (editor && _.includes(languageIds, editor.document.languageId))));
     }
 
     function showStatusBarItem(show: boolean): void {
@@ -101,6 +101,9 @@ async function activateClient(context: vscode.ExtensionContext) {
 
     statusBarItem.text = 'DeepScan';
     statusBarItem.command = CommandIds.showOutput;
+
+    vscode.window.onDidChangeActiveTextEditor(updateStatusBar);
+    updateStatusBar(vscode.window.activeTextEditor);
 
     // We need to go two levels up since an extension compile the js code into the output folder.
     let serverModule = path.join(__dirname, '..', '..', 'server', 'src', 'server.js');
@@ -122,7 +125,7 @@ async function activateClient(context: vscode.ExtensionContext) {
             configurationSection: 'deepscan'
         },
         initializationOptions: () => {
-            let configuration = vscode.workspace.getConfiguration('deepscan');
+            let configuration = getDeepScanConfiguration();
             const defaultUrl = 'https://deepscan.io';
             return {
                 server: configuration ? configuration.get('server', defaultUrl) : defaultUrl,
@@ -162,7 +165,7 @@ async function activateClient(context: vscode.ExtensionContext) {
             statusBarItem.tooltip = stopped;
             serverRunning = false;
         }
-        udpateStatusBar(vscode.window.activeTextEditor);
+        updateStatusBar(vscode.window.activeTextEditor);
     });
     client.onReady().then(() => {
         console.log('Client is ready.');
@@ -225,7 +228,7 @@ async function activateClient(context: vscode.ExtensionContext) {
 }
 
 async function checkSetting() {
-    const config = vscode.workspace.getConfiguration('deepscan');
+    const config = getDeepScanConfiguration();
     const shouldIgnore = config.get('ignoreConfirmWarning') === true;
 
     if (shouldIgnore) {
@@ -246,4 +249,8 @@ async function checkSetting() {
     else if (choice === neverShowAgain) {
         await config.update('ignoreConfirmWarning', true, false);
     }
+}
+
+function getDeepScanConfiguration(): vscode.WorkspaceConfiguration {
+    return vscode.workspace.getConfiguration('deepscan');
 }
