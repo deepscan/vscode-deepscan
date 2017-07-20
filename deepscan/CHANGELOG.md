@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.2.2
+
+- Update rule definition (1.4.0-beta)
+
 ## 1.2.1
 
 - Inspect open text documents when `deepscan.server` configuration is changed.
