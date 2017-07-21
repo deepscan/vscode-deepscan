@@ -2,7 +2,7 @@
     "name": "vscode-deepscan",
     "displayName": "DeepScan",
     "description": "Detect JavaScript and React bugs and quality issues more precisely",
-    "version": "1.2.2",
+    "version": "1.2.3",
     "author": "DeepScan",
     "publisher": "DeepScan",
     "license": "MIT",
@@ -46,6 +46,17 @@
                     "type": "boolean",
                     "description": "Ignores the confirm warning",
                     "default": false
+                },
+                "deepscan.ignoreRules": {
+                    "type": "array",
+                    "description": "Ignores the rules",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    }
                 }
             }
         },

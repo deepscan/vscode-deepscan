@@ -24,6 +24,15 @@ This extension contributes the following variables to the settings:
 
 - `deepscan.enable`: enable/disable DeepScan. Disabled by default. Enabled on per workspace when you confirm.
 - `deepscan.server`: set an url of DeepScan server. "https://deepscan.io" by default.
+- `deepscan.ignoreRules`: set an array of rules to exclude.
+  An example to exclude 'UNUSED_DECL' rule is:
+```json
+{
+    "deepscan.ignoreRules": [
+        "UNUSED_DECL"
+    ]
+}
+```
 
 ## Commands
 

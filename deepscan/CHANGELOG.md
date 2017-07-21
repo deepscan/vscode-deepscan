@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.2.3
+
+- Show rule name in the alarm
+- Provide `deepscan.ignoreRules` option to exclude specific rules
+
 ## 1.2.2
 
 - Update rule definition (1.4.0-beta)

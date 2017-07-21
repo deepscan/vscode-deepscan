@@ -40,6 +40,7 @@ interface Settings {
     deepscan: {
         enable?: boolean;
         server?: string;
+        ignoreRules?: (string)[];
     }
 }
 
@@ -77,6 +78,7 @@ let workspaceRoot: string = undefined;
 
 let deepscanServer: string = undefined;
 let userAgent: string = undefined;
+let ignoreRules: string[] = null;
 
 function supportsLanguage(document: TextDocument): boolean {
     return _.includes(supportedLanguageIds, document.languageId);
@@ -109,7 +111,7 @@ function getServerUrl(url) {
     return detachSlash(url);
 }
 
-connection.onInitialize((params): Thenable<InitializeResult | ResponseError<InitializeError>>  | InitializeResult | ResponseError<InitializeError> => {
+connection.onInitialize((params) => {
     let initOptions: {
         server: string;
         languageIds: string[];
@@ -134,12 +136,23 @@ connection.onDidChangeConfiguration((params) => {
     settings = params.settings || {};
     settings.deepscan = settings.deepscan || {};
 
+    let changed = false;
     if (settings.deepscan.server) {
         let oldServer = deepscanServer;
         deepscanServer = getServerUrl(settings.deepscan.server);
-        if (deepscanServer === oldServer) {
-            return;
+        if (deepscanServer !== oldServer) {
+            changed = true;
         }
+    }
+    if (settings.deepscan.ignoreRules) {
+        let oldRules = ignoreRules;
+        ignoreRules = settings.deepscan.ignoreRules;
+        if (!_.isEqual(ignoreRules, oldRules)) {
+            changed = true;
+        }
+    }
+
+    if (changed) {
         connection.console.info(`Configuration changed: ${deepscanServer}`);
         // Reinspect any open text documents
         documents.all().forEach(inspect);
@@ -176,6 +189,11 @@ function inspect(identifier: VersionedTextDocumentIdentifier) {
     }, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             let diagnostics: Diagnostic[] = getResult(JSON.parse(body).data);
+
+            if (Array.isArray(settings.deepscan.ignoreRules)) {
+                diagnostics = _.filter(diagnostics, (diagnostic) => !_.includes(settings.deepscan.ignoreRules, diagnostic.code));
+            }
+
             // Publish the diagnostics
             connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
             connection.sendNotification(StatusNotification.type, { state: diagnostics.length > 0 ? Status.warn : Status.ok });
@@ -206,7 +224,7 @@ function makeDiagnostic(alarm): Diagnostic {
     let endLine = l.endLine != null ? Math.max(0, l.endLine - 1) : startLine;
     let endChar = l.endCh != null ? Math.max(0, l.endCh - 1) : startChar;
     return {
-        message: message,
+        message: `${message} (${alarm.name})`,
         severity: convertSeverity(alarm.impact),
         source: 'deepscan',
         range: {
