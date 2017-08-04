@@ -35,7 +35,8 @@ enum Status {
 }
 
 interface StatusParams {
-    state: Status
+    state: Status,
+    error: string
 }
 
 namespace StatusNotification {
@@ -58,6 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 async function activateClient(context: vscode.ExtensionContext) {
     let languageIds = ['javascript', 'javascriptreact'];
+    let statusBarMessage: vscode.Disposable = null;
 
     function updateStatus(status: Status) {
         let tooltip = statusBarItem.tooltip;
@@ -81,6 +83,16 @@ async function activateClient(context: vscode.ExtensionContext) {
         statusBarItem.tooltip = tooltip;
         deepscanStatus = status;
         updateStatusBar(vscode.window.activeTextEditor);
+    }
+
+    function showNotificationIfNeeded(params: StatusParams) {
+        if (statusBarMessage) {
+            statusBarMessage.dispose();
+        }
+
+        if (params.state === Status.fail) {
+            statusBarMessage = vscode.window.setStatusBarMessage(`A problem occurred communicating with DeepScan server. (${params.error})`);
+        }
     }
 
     function updateStatusBar(editor: vscode.TextEditor): void {
@@ -172,6 +184,7 @@ async function activateClient(context: vscode.ExtensionContext) {
 
         client.onNotification(StatusNotification.type, (params) => {
             updateStatus(params.state);
+            showNotificationIfNeeded(params);
         });
 
         client.onNotification(exitCalled, (params) => {

@@ -25,7 +25,8 @@ enum Status {
 }
 
 interface StatusParams {
-    state: Status
+    state: Status,
+    error: string
 }
 
 namespace StatusNotification {
@@ -201,7 +202,7 @@ function inspect(identifier: VersionedTextDocumentIdentifier) {
             connection.console.error('Failed to inspect: ' + error.message);
             // Clear problems
             connection.sendDiagnostics({ uri: textDocument.uri, diagnostics: [] });
-            connection.sendNotification(StatusNotification.type, { state: Status.fail });
+            connection.sendNotification(StatusNotification.type, { state: Status.fail, error: error.message });
         }
     });
 }

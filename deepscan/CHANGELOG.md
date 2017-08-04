@@ -1,13 +1,17 @@
 # Change Log
 
+## 1.2.4
+
+- Show a status bar message for disconnected server.
+
 ## 1.2.3
 
-- Show rule name in the alarm
-- Provide `deepscan.ignoreRules` option to exclude specific rules
+- Show rule name in the alarm.
+- Provide `deepscan.ignoreRules` option to exclude specific rules.
 
 ## 1.2.2
 
-- Update rule definition (1.4.0-beta)
+- Update rule definition (1.4.0-beta).
 
 ## 1.2.1
 

@@ -1,8 +1,8 @@
 {
     "name": "vscode-deepscan",
     "displayName": "DeepScan",
-    "description": "Detect JavaScript and React bugs and quality issues more precisely",
-    "version": "1.2.3",
+    "description": "Detect bugs and quality issues in JavaScript code including React more precisely",
+    "version": "1.2.4",
     "author": "DeepScan",
     "publisher": "DeepScan",
     "license": "MIT",

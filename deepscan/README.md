@@ -1,6 +1,6 @@
 # VS Code DeepScan extension
 
-This is a VS Code extension to integrate [DeepScan](https://deepscan.io).
+VS Code extension to detect bugs and quality issues in JavaScript code including React. Works with [DeepScan](https://deepscan.io).
 
 DeepScan is a cutting-edge JavaScript code inspection tool that helps you to find bugs and quality issues more precisely by data-flow analysis. You can also use it for React because DeepScan delivers [React specific rules](https://deepscan.io/docs/rules/#react).
 
