@@ -1,6 +1,6 @@
 {
     "name": "deepscan-server",
-    "version": "1.1.5",
+    "version": "1.2.0",
     "author": "DeepScan",
     "publisher": "DeepScan",
     "license": "MIT",
@@ -20,7 +20,7 @@
     "dependencies": {
         "lodash": "^4.17.4",
         "request": "^2.79.0",
-        "vscode-languageserver": "^3.3.0-alpha.8"
+        "vscode-languageserver": "^3.3.0"
     },
     "devDependencies": {
         "typescript": "^2.3.2",

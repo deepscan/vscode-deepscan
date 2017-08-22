@@ -4,17 +4,16 @@
  * ------------------------------------------------------------------------------------------ */
 'use strict';
 
-import * as fs from 'fs';
 import * as _ from 'lodash';
 
 import {
     createConnection, IConnection,
-    ResponseError, NotificationType, InitializeResult, InitializeError,
-    Diagnostic, DiagnosticSeverity, Files,
+    NotificationType, Diagnostic, DiagnosticSeverity,
     TextDocuments, TextDocument, TextDocumentSyncKind, VersionedTextDocumentIdentifier,
     IPCMessageReader, IPCMessageWriter
 } from 'vscode-languageserver';
 
+var path = require('path');
 var request = require('request');
 
 enum Status {
@@ -180,13 +179,14 @@ function inspect(identifier: VersionedTextDocumentIdentifier) {
         return;
     }
 
-    request.post({
+    // Send filename with extension to parse correctly in server
+    let filename = `demo${path.extname(uri)}`;
+
+    let req = request.post({
         url: URL,
         headers : {
-            'content-type': 'application/octet-stream',
-            'user-agent': userAgent
-        },
-        body: docContent
+            'user-agent': userAgent,
+        }
     }, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             let diagnostics: Diagnostic[] = getResult(JSON.parse(body).data);
@@ -204,6 +204,11 @@ function inspect(identifier: VersionedTextDocumentIdentifier) {
             connection.sendDiagnostics({ uri: textDocument.uri, diagnostics: [] });
             connection.sendNotification(StatusNotification.type, { state: Status.fail, error: error.message });
         }
+    });
+    var form = req.form();
+    form.append('file', docContent, {
+        filename,
+        contentType: 'text/plain'
     });
 }
 

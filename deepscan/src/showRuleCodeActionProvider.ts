@@ -31,7 +31,7 @@ export default class showRuleCodeActionProvider implements vscode.CodeActionProv
         if ("deepscan" !== diagnostic.source)
             return;
 
-        let text = document.getText(diagnostic.range);
+        //let text = document.getText(diagnostic.range);
         let commands: vscode.Command[] = [];
         commands.push({
             arguments: [document, diagnostic.code],
