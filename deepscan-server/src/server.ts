@@ -74,7 +74,7 @@ let documents: TextDocuments = new TextDocuments();
 
 let supportedLanguageIds: string[] = null;
 
-let workspaceRoot: string = undefined;
+//let workspaceRoot: string = undefined;
 
 let deepscanServer: string = undefined;
 let userAgent: string = undefined;
@@ -117,7 +117,7 @@ connection.onInitialize((params) => {
         languageIds: string[];
         userAgent: string;
     } = params.initializationOptions;
-    workspaceRoot = params.rootPath;
+    //workspaceRoot = params.rootPath;
     deepscanServer = getServerUrl(initOptions.server);
     supportedLanguageIds = initOptions.languageIds;
     userAgent = initOptions.userAgent;

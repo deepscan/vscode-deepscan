@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.3.1
+
+- Update rule definition (1.6.0-beta)
+- Fix DeepScan alarms
+
 ## 1.3.0
 
 - TypeScript support: Support code inspection for `*.ts` and `*.tsx` files on save
