@@ -1,9 +1,14 @@
 # Change Log
 
+## 1.3.2
+
+- Update badge url
+
 ## 1.3.1
 
 - Update rule definition (1.6.0-beta)
-- Fix DeepScan alarms
+- Fix DeepScan alarms and add a badge
+- Note: DeepScan now supports TypeScript 2.5
 
 ## 1.3.0
 
