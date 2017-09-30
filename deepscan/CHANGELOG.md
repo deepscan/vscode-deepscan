@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.3.3
+
+- Handle error message nicely (to prevent server crash)
+
 ## 1.3.2
 
 - Update badge url

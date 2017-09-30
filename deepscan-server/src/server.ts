@@ -199,10 +199,11 @@ function inspect(identifier: VersionedTextDocumentIdentifier) {
             connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
             connection.sendNotification(StatusNotification.type, { state: diagnostics.length > 0 ? Status.warn : Status.ok });
         } else {
-            connection.console.error('Failed to inspect: ' + error.message);
+            let message = error ? error.message : parseSilently(body);
+            connection.console.error(`Failed to inspect: ${message}`);
             // Clear problems
             connection.sendDiagnostics({ uri: textDocument.uri, diagnostics: [] });
-            connection.sendNotification(StatusNotification.type, { state: Status.fail, error: error.message });
+            connection.sendNotification(StatusNotification.type, { state: Status.fail, error: message });
         }
     });
     var form = req.form();
@@ -259,5 +260,13 @@ function detachSlash(path) {
         return path.substr(0, len - 1);
     } else {
         return path;
+    }
+}
+
+function parseSilently(body) {
+    try {
+        return JSON.parse(body).reason;
+    } catch (e) {
+        return null;
     }
 }

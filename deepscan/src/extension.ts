@@ -58,7 +58,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 async function activateClient(context: vscode.ExtensionContext) {
-    let languageIds = ['javascript', 'javascriptreact', 'typescript', 'typescriptreact' ];
+    let languageIds = ['javascript', 'javascriptreact', 'typescript', 'typescriptreact'];
     let statusBarMessage: vscode.Disposable = null;
 
     function updateStatus(status: Status) {
