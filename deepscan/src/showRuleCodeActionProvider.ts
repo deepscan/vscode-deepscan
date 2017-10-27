@@ -62,9 +62,10 @@ class TextDocumentContentProvider implements vscode.TextDocumentContentProvider 
     private rules;
     private ruleKey: string;
     private converter;
-    private fbImg;
-    private fcImg;
-    private ftImg;
+    private imgBug;
+    private imgCheck;
+    private imgTags;
+    private imgBookmark;
 
     constructor(context: vscode.ExtensionContext, rules) {
         this.context = context;
@@ -73,9 +74,10 @@ class TextDocumentContentProvider implements vscode.TextDocumentContentProvider 
         showdown.setFlavor('github');
         this.converter = new showdown.Converter();
 
-        this.fbImg = new Buffer(fs.readFileSync(path.resolve(this.context.extensionPath, "resources", "fa-bug.png"))).toString('base64');
-        this.fcImg = new Buffer(fs.readFileSync(path.resolve(this.context.extensionPath, "resources", "fa-check.png"))).toString('base64');
-        this.ftImg = new Buffer(fs.readFileSync(path.resolve(this.context.extensionPath, "resources", "fa-tags.png"))).toString('base64');
+        this.imgBug = new Buffer(fs.readFileSync(path.resolve(this.context.extensionPath, "resources", "fa-bug.png"))).toString('base64');
+        this.imgCheck = new Buffer(fs.readFileSync(path.resolve(this.context.extensionPath, "resources", "fa-check.png"))).toString('base64');
+        this.imgTags = new Buffer(fs.readFileSync(path.resolve(this.context.extensionPath, "resources", "fa-tags.png"))).toString('base64');
+        this.imgBookmark = new Buffer(fs.readFileSync(path.resolve(this.context.extensionPath, "resources", "fa-bookmark.png"))).toString('base64');
     }
 
     public provideTextDocumentContent(uri: vscode.Uri): string {
@@ -118,13 +120,13 @@ class TextDocumentContentProvider implements vscode.TextDocumentContentProvider 
             sees = sees.concat(rule.see);
 
             content = `<ul class="deepscan-rule-detail">
-                           <li class="deepscan-rule-detail-property">`;
+                        <li class="deepscan-rule-detail-property">`;
             _.forEach(rule.severity, (severity) => {
                 content += `<span class="severity" data-severity="${severity}"><i class="circle"></i>${severity}</span>`;
             });
-            content += `<li class="deepscan-rule-detail-property"><img src="data:image/png;base64,${rule.type === 'Error' ? this.fbImg : this.fcImg}"> ${rule.type}
-                        <li class="deepscan-rule-detail-property"><img src="data:image/png;base64,${this.ftImg}"> ${tags}
-                        <li class="deepscan-rule-detail-property link"><a href="https://deepscan.io/docs/rules/${slugify(rule.key)}">Show more</a>
+            content += `<li class="deepscan-rule-detail-property"><img src="data:image/png;base64,${rule.type === 'Error' ? this.imgBug : this.imgCheck}"> ${rule.type}
+                        <li class="deepscan-rule-detail-property"><img src="data:image/png;base64,${this.imgTags}"> ${tags}
+                        <li class="deepscan-rule-detail-property"><img src="data:image/png;base64,${this.imgBookmark}"> <a href="https://deepscan.io/docs/rules/${slugify(rule.key)}">${rule.key}</a>
                        </ul>
 
                        <div class="deepscan-rule-description">
@@ -166,9 +168,6 @@ class TextDocumentContentProvider implements vscode.TextDocumentContentProvider 
                     }
                     .deepscan-rule-detail-property img {
                         vertical-align: middle;
-                    }
-                    .deepscan-rule-detail-property.link {
-                        float: right;
                     }
                     .deepscan-rule-detail .severity {
                         padding: 0 3px;

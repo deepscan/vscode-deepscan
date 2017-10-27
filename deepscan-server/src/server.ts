@@ -10,6 +10,7 @@ import {
     createConnection, IConnection,
     NotificationType, Diagnostic, DiagnosticSeverity,
     TextDocuments, TextDocument, TextDocumentSyncKind, VersionedTextDocumentIdentifier,
+    TextDocumentPositionParams, CompletionItem, CompletionItemKind,
     IPCMessageReader, IPCMessageWriter
 } from 'vscode-languageserver';
 
@@ -74,8 +75,6 @@ let documents: TextDocuments = new TextDocuments();
 
 let supportedLanguageIds: string[] = null;
 
-//let workspaceRoot: string = undefined;
-
 let deepscanServer: string = undefined;
 let userAgent: string = undefined;
 let ignoreRules: string[] = null;
@@ -117,7 +116,6 @@ connection.onInitialize((params) => {
         languageIds: string[];
         userAgent: string;
     } = params.initializationOptions;
-    //workspaceRoot = params.rootPath;
     deepscanServer = getServerUrl(initOptions.server);
     supportedLanguageIds = initOptions.languageIds;
     userAgent = initOptions.userAgent;
@@ -127,6 +125,10 @@ connection.onInitialize((params) => {
             textDocumentSync: TextDocumentSyncKind.None,
             executeCommandProvider: {
                 commands: [CommandIds.inspectCode]
+            },
+            // Tell the client that the server support code complete
+            completionProvider: {
+                resolveProvider: true
             }
         }
     };
@@ -157,6 +159,53 @@ connection.onDidChangeConfiguration((params) => {
         // Reinspect any open text documents
         documents.all().forEach(inspect);
     }
+});
+
+connection.onCompletion((_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
+    return [
+        {
+            label: 'deepscan-disable',
+            kind: CompletionItemKind.Text,
+            data: 1
+        },
+        {
+            label: 'deepscan-enable',
+            kind: CompletionItemKind.Text,
+            data: 2
+        },
+        {
+            label: 'deepscan-disable-line',
+            kind: CompletionItemKind.Text,
+            data: 3
+        },
+        {
+            label: 'deepscan-enable-line',
+            kind: CompletionItemKind.Text,
+            data: 4
+        }
+    ]
+});
+
+connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
+    switch (item.data) {
+        case 1:
+            item.detail = 'DeepScan directives',
+            item.documentation = 'Disable rules from the position'
+            break;
+        case 2:
+            item.detail = 'DeepScan directives',
+            item.documentation = 'Enable rules from the position'
+            break;
+        case 3:
+            item.detail = 'DeepScan directives',
+            item.documentation = 'Disable rules in the current line'
+            break;
+        case 4:
+            item.detail = 'DeepScan directives',
+            item.documentation = 'Disable rules in the next line'
+            break;
+    }
+    return item;
 });
 
 connection.onExecuteCommand((params) => {

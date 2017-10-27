@@ -36,6 +36,16 @@ This extension contributes the following variables to the settings:
 }
 ```
 
+### Disabling Rules with Inline Comments
+
+While you can exclude rules project wide via `deepscan.ignoreRules` option, you can also disable a rule in a file using inline comment.
+```javascript
+const x = 0;
+x = 1; x + 1; // deepscan-disable-line UNUSED_EXPR
+```
+
+Read more about it [here](https://deepscan.io/docs/get-started/disabling-rules/).
+
 ## Commands
 
 This extension contributes the following commands to the Command palette.

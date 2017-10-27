@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.3.4
+
+- Update rule definition (1.7.0-beta)
+- Support to disable rules with inline comments. Check it [here](https://deepscan.io/docs/get-started/disabling-rules/).
+- Code complete for directives to disable rules: `deepscan-disable`, `deepscan-enable`, `deepscan-disable-line`, `deepscan-enable-line`
+- Show rule name explicitly (replacing 'Show more')
+
 ## 1.3.3
 
 - Handle error message nicely (to prevent server crash)
