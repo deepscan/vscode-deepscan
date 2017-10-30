@@ -18,7 +18,8 @@ import {
     RevealOutputChannelOn, VersionedTextDocumentIdentifier, ExecuteCommandRequest, ExecuteCommandParams
 } from 'vscode-languageclient';
 
-import showRuleCodeActionProvider from './showRuleCodeActionProvider';
+import disableRuleCodeActionProvider from './actions/disableRulesCodeActionProvider';
+import showRuleCodeActionProvider from './actions/showRuleCodeActionProvider';
 
 const packageJSON = vscode.extensions.getExtension('DeepScan.vscode-deepscan').packageJSON;
 
@@ -226,9 +227,11 @@ async function activateClient(context: vscode.ExtensionContext) {
         vscode.window.showWarningMessage(`Can't read or parse rule definitions: ${e.message}`);
     }
 
-    // Register 'Show rule'
+    // Register code actions
     const showRuleAction = new showRuleCodeActionProvider(context, rules);
     context.subscriptions.push(vscode.languages.registerCodeActionsProvider(clientOptions.documentSelector, showRuleAction));
+    const disableRulesAction = new disableRuleCodeActionProvider(context);
+    context.subscriptions.push(vscode.languages.registerCodeActionsProvider(clientOptions.documentSelector, disableRulesAction));
 
     context.subscriptions.push(
         new SettingMonitor(client, 'deepscan.enable').start(),

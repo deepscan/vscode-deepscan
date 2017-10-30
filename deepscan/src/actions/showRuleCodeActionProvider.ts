@@ -9,43 +9,40 @@ import * as showdown from 'showdown';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import deepscanCodeActionProvider from './deepscanCodeActionProvider';
 
-export default class showRuleCodeActionProvider implements vscode.CodeActionProvider {
-    private static commandId: string = 'deepscan.show-rule';
-    private static scheme: string = 'deepscan';
+export default class showRuleCodeActionProvider extends deepscanCodeActionProvider {
     private command: vscode.Disposable;
-    private showRuleUri: vscode.Uri = vscode.Uri.parse(`${showRuleCodeActionProvider.scheme}://show-rule`);
     private provider: TextDocumentContentProvider;
 
     public constructor(context: vscode.ExtensionContext, rules) {
-        this.command = vscode.commands.registerCommand(showRuleCodeActionProvider.commandId, this.showRule, this);
+        super('show-rule');
+
+        this.command = vscode.commands.registerCommand(this.getCommandId(), this.execute, this);
         context.subscriptions.push(this.command);
 
         this.provider = new TextDocumentContentProvider(context, rules);
-        vscode.workspace.registerTextDocumentContentProvider(showRuleCodeActionProvider.scheme, this.provider);
+        vscode.workspace.registerTextDocumentContentProvider(this.getScheme(), this.provider);
     }
 
-    public provideCodeActions(document: vscode.TextDocument, range: vscode.Range, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.Command[] {
-        let diagnostic: vscode.Diagnostic = context.diagnostics[0];
-
-        if ("deepscan" !== diagnostic.source)
-            return;
-
+    public codeActions(document: vscode.TextDocument, range: vscode.Range, diagnostics: vscode.Diagnostic[], token: vscode.CancellationToken): vscode.Command[] {
         //let text = document.getText(diagnostic.range);
         let commands: vscode.Command[] = [];
-        commands.push({
-            arguments: [document, diagnostic.code],
-            command: showRuleCodeActionProvider.commandId,
-            title: `Show rule ${diagnostic.code}`,
+        diagnostics.forEach(diagnostic => {
+            commands.push({
+                arguments: [document, diagnostic.code],
+                command: this.getCommandId(),
+                title: `Show rule ${diagnostic.code}`,
+            });
         });
-
         return commands;
     }
 
-    public showRule(document, ruleKey: string) {
+    public execute(document, ruleKey: string) {
+        let uri = this.getUri();
         this.provider.set(ruleKey);
-        vscode.commands.executeCommand('vscode.previewHtml', this.showRuleUri, vscode.ViewColumn.Two, 'DeepScan Rule').then((success) => {
-            this.provider.update(this.showRuleUri);
+        vscode.commands.executeCommand('vscode.previewHtml', uri, vscode.ViewColumn.Two, 'DeepScan Rule').then((success) => {
+            this.provider.update(uri);
         }, (reason) => {
             vscode.window.showErrorMessage(reason);
         });
