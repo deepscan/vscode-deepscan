@@ -1,5 +1,14 @@
 # Change Log
 
+## 1.4.0
+
+- New code actions
+ - **Ignore this line**: Insert `// deepscan-disable-line` at the line
+ - **Ignore this rule**: Insert `// deepscan-disable-line <rule>` at the line
+- Improved code actions
+ - **Show rule**: Show all the rules at the line
+- Not to analyze a file over 30,000 lines
+
 ## 1.3.4
 
 - Update rule definition (1.7.0-beta)

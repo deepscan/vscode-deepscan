@@ -44,6 +44,10 @@ const x = 0;
 x = 1; x + 1; // deepscan-disable-line UNUSED_EXPR
 ```
 
+By **Ignore this line** and **Ignore this rule** code actions, you can add an inline comment easier.
+
+![Disabling rules](deepscan/resources/disabling-rules.gif)
+
 Read more about it [here](https://deepscan.io/docs/get-started/disabling-rules/).
 
 ## Commands

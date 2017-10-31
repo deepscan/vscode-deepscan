@@ -222,8 +222,15 @@ function inspect(identifier: VersionedTextDocumentIdentifier) {
     let docContent = textDocument.getText();
 
     const URL = deepscanServer + '/api/demo';
+    const MAX_LINES = 30000;
 
     if (docContent.trim() === '') {
+        connection.sendNotification(StatusNotification.type, { state: Status.none });
+        return;
+    }
+
+    if (textDocument.lineCount >= MAX_LINES) {
+        connection.console.info(`Sorry! We do not support above ${MAX_LINES} lines.`);
         connection.sendNotification(StatusNotification.type, { state: Status.none });
         return;
     }
