@@ -224,13 +224,19 @@ function inspect(identifier: VersionedTextDocumentIdentifier) {
     const URL = deepscanServer + '/api/demo';
     const MAX_LINES = 30000;
 
+    function sendDiagnostics(diagnostics) {
+        connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+    }
+
     if (docContent.trim() === '') {
+        sendDiagnostics([]);
         connection.sendNotification(StatusNotification.type, { state: Status.none });
         return;
     }
 
     if (textDocument.lineCount >= MAX_LINES) {
         connection.console.info(`Sorry! We do not support above ${MAX_LINES} lines.`);
+        sendDiagnostics([]);
         connection.sendNotification(StatusNotification.type, { state: Status.none });
         return;
     }
@@ -252,13 +258,13 @@ function inspect(identifier: VersionedTextDocumentIdentifier) {
             }
 
             // Publish the diagnostics
-            connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+            sendDiagnostics(diagnostics);
             connection.sendNotification(StatusNotification.type, { state: diagnostics.length > 0 ? Status.warn : Status.ok });
         } else {
             let message = error ? error.message : parseSilently(body);
             connection.console.error(`Failed to inspect: ${message}`);
             // Clear problems
-            connection.sendDiagnostics({ uri: textDocument.uri, diagnostics: [] });
+            sendDiagnostics([]);
             connection.sendNotification(StatusNotification.type, { state: Status.fail, error: message });
         }
     });

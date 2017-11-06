@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.4.1
+
+- Clear previous problems when there is no source to inspect
+
 ## 1.4.0
 
 - New code actions
