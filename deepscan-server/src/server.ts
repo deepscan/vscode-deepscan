@@ -41,6 +41,7 @@ interface Settings {
     deepscan: {
         enable?: boolean;
         server?: string;
+        proxy?: string;
         ignoreRules?: (string)[];
     }
 }
@@ -76,8 +77,11 @@ let documents: TextDocuments = new TextDocuments();
 let supportedLanguageIds: string[] = null;
 
 let deepscanServer: string = undefined;
+let proxyServer: string = undefined;
 let userAgent: string = undefined;
 let ignoreRules: string[] = null;
+
+let httpProxy = _.pick(process.env, ['http_proxy']).http_proxy;
 
 function supportsLanguage(document: TextDocument): boolean {
     return _.includes(supportedLanguageIds, document.languageId);
@@ -113,10 +117,13 @@ function getServerUrl(url) {
 connection.onInitialize((params) => {
     let initOptions: {
         server: string;
+        proxy: string;
         languageIds: string[];
         userAgent: string;
     } = params.initializationOptions;
     deepscanServer = getServerUrl(initOptions.server);
+    proxyServer = initOptions.proxy;
+
     supportedLanguageIds = initOptions.languageIds;
     userAgent = initOptions.userAgent;
     connection.console.info(`Server: ${deepscanServer} (${userAgent})`);
@@ -146,16 +153,21 @@ connection.onDidChangeConfiguration((params) => {
             changed = true;
         }
     }
-    if (settings.deepscan.ignoreRules) {
-        let oldRules = ignoreRules;
-        ignoreRules = settings.deepscan.ignoreRules;
-        if (!_.isEqual(ignoreRules, oldRules)) {
-            changed = true;
-        }
+
+    let oldProxyServer = proxyServer;
+    proxyServer = settings.deepscan.proxy;
+    if (proxyServer !== oldProxyServer) {
+        changed = true;
+    }
+
+    let oldRules = ignoreRules;
+    ignoreRules = settings.deepscan.ignoreRules;
+    if (!_.isEqual(ignoreRules, oldRules)) {
+        changed = true;
     }
 
     if (changed) {
-        connection.console.info(`Configuration changed: ${deepscanServer}`);
+        connection.console.info(`Configuration changed: ${deepscanServer} (proxy: ${proxyServer})`);
         // Reinspect any open text documents
         documents.all().forEach(inspect);
     }
@@ -245,6 +257,7 @@ function inspect(identifier: VersionedTextDocumentIdentifier) {
     let filename = `demo${path.extname(uri)}`;
 
     let req = request.post({
+        proxy: proxyServer || httpProxy,
         url: URL,
         headers : {
             'user-agent': userAgent,

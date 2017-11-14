@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.4.2
+
+- Proxy support
+ - Try to use `deepscan.proxy` option
+ - Then try to use 'http_proxy' environment variable
+
 ## 1.4.1
 
 - Clear previous problems when there is no source to inspect

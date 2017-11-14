@@ -2,7 +2,7 @@
     "name": "vscode-deepscan",
     "displayName": "DeepScan",
     "description": "Detect bugs and quality issues in JavaScript, TypeScript and React more precisely",
-    "version": "1.4.1",
+    "version": "1.4.2",
     "author": "DeepScan",
     "publisher": "DeepScan",
     "license": "MIT",
@@ -43,14 +43,18 @@
                     "default": "https://deepscan.io",
                     "description": "DeepScan server url."
                 },
+                "deepscan.proxy": {
+                    "type": "string",
+                    "description": "Proxy server url."
+                },
                 "deepscan.ignoreConfirmWarning": {
                     "type": "boolean",
-                    "description": "Ignores the confirm warning",
+                    "description": "Ignores the confirm warning.",
                     "default": false
                 },
                 "deepscan.ignoreRules": {
                     "type": "array",
-                    "description": "Ignores the rules",
+                    "description": "Ignores the rules.",
                     "items": {
                         "anyOf": [
                             {
