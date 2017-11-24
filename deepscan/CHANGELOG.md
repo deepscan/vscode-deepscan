@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.4.3
+
+- Update rule definition (1.8.0-beta)
+- Update README for the proxy
+
 ## 1.4.2
 
 - Proxy support

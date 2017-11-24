@@ -56,3 +56,11 @@ Read more about it [here](https://deepscan.io/docs/get-started/disabling-rules/)
 This extension contributes the following commands to the Command palette.
 
 - `Inspect Code`: inspect the current JavaScript file.
+
+## Using behind a proxy
+
+This extension requires a connection with the DeepScan server for inspection. This connection cannot be established when you are behind a proxy.
+
+For this case, the extension will try to set its proxy via your `http_proxy` environment variable.
+
+If you don't have the environment variable, try to set `deepscan.proxy` option to the url of proxy server.
