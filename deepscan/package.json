@@ -2,7 +2,7 @@
     "name": "vscode-deepscan",
     "displayName": "DeepScan",
     "description": "Detect bugs and quality issues in JavaScript, TypeScript and React more precisely",
-    "version": "1.4.3",
+    "version": "1.5.0",
     "author": "DeepScan",
     "publisher": "DeepScan",
     "license": "MIT",
@@ -19,10 +19,10 @@
     ],
     "keywords": [
         "javascript",
-        "jsx",
         "typescript",
         "react",
-        "linters"
+        "linters",
+        "vuejs"
     ],
     "activationEvents": [
         "*"

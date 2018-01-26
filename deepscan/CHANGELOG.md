@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.5.0
+
+- Vue.js support: Support code inspection for `*.vue` files on save
+- Update rule definition (1.10.0-beta)
+
 ## 1.4.3
 
 - Update rule definition (1.8.0-beta)

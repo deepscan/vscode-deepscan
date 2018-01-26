@@ -74,7 +74,7 @@ let connection: IConnection = createConnection(new IPCMessageReader(process), ne
 let settings: Settings = null;
 let documents: TextDocuments = new TextDocuments();
 
-let supportedLanguageIds: string[] = null;
+let supportedFileExtensions: string[] = null;
 
 let deepscanServer: string = undefined;
 let proxyServer: string = undefined;
@@ -84,7 +84,7 @@ let ignoreRules: string[] = null;
 let httpProxy = _.pick(process.env, ['http_proxy']).http_proxy;
 
 function supportsLanguage(document: TextDocument): boolean {
-    return _.includes(supportedLanguageIds, document.languageId);
+    return _.includes(supportedFileExtensions, path.extname(document.uri));
 }
 
 // The documents manager listen for text document create, change
@@ -118,13 +118,13 @@ connection.onInitialize((params) => {
     let initOptions: {
         server: string;
         proxy: string;
-        languageIds: string[];
+        fileExtensions: string[];
         userAgent: string;
     } = params.initializationOptions;
     deepscanServer = getServerUrl(initOptions.server);
     proxyServer = initOptions.proxy;
 
-    supportedLanguageIds = initOptions.languageIds;
+    supportedFileExtensions = initOptions.fileExtensions;
     userAgent = initOptions.userAgent;
     connection.console.info(`Server: ${deepscanServer} (${userAgent})`);
     return {

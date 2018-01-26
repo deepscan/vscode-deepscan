@@ -16,7 +16,7 @@ DeepScan is a cutting-edge JavaScript code inspection tool that helps you to fin
 
 ## How it works
 
-- Report issues in Problems panel when you open a `*.js`, `*.jsx`, `*.ts`, or `*.tsx` file and save it.
+- Report issues in Problems panel when you open a `*.js`, `*.jsx`, `*.ts`, `*.tsx`, or `*.vue` file and save it.
 - Highlight issues in the code.
 - Show a rule description using a code action. When you click the light bulb of the issue, you can see the detailed description of the rule and grasp what's the problem.
 

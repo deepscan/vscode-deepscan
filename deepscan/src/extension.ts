@@ -15,7 +15,8 @@ import {
     LanguageClient, LanguageClientOptions, SettingMonitor, TransportKind,
     NotificationType, ErrorHandler,
     ErrorAction, CloseAction, State as ClientState,
-    RevealOutputChannelOn, VersionedTextDocumentIdentifier, ExecuteCommandRequest, ExecuteCommandParams
+    RevealOutputChannelOn, VersionedTextDocumentIdentifier, ExecuteCommandRequest, ExecuteCommandParams,
+    DocumentSelector
 } from 'vscode-languageclient';
 
 import disableRuleCodeActionProvider from './actions/disableRulesCodeActionProvider';
@@ -23,6 +24,9 @@ import showRuleCodeActionProvider from './actions/showRuleCodeActionProvider';
 
 const packageJSON = vscode.extensions.getExtension('DeepScan.vscode-deepscan').packageJSON;
 
+// For the support of '.vue' support by languageIds, 'vue' language should be installed.
+//const languageIds = ['javascript', 'javascriptreact', 'typescript', 'typescriptreact', 'vue'];
+const fileExtensions = ['.js', '.jsx', '.ts', '.tsx', '.vue'];
 
 namespace CommandIds {
     export const showOutput: string = 'deepscan.showOutputView';
@@ -59,7 +63,6 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 async function activateClient(context: vscode.ExtensionContext) {
-    let languageIds = ['javascript', 'javascriptreact', 'typescript', 'typescriptreact'];
     let statusBarMessage: vscode.Disposable = null;
 
     function updateStatus(status: Status) {
@@ -97,7 +100,9 @@ async function activateClient(context: vscode.ExtensionContext) {
     }
 
     function updateStatusBar(editor: vscode.TextEditor): void {
-        showStatusBarItem(serverRunning && (deepscanStatus === Status.fail || (editor && _.includes(languageIds, editor.document.languageId))));
+        let show = serverRunning &&
+                   (deepscanStatus === Status.fail || (editor && _.includes(fileExtensions, path.extname(editor.document.fileName))));
+        showStatusBarItem(show);
     }
 
     function showStatusBarItem(show: boolean): void {
@@ -128,9 +133,9 @@ async function activateClient(context: vscode.ExtensionContext) {
 
     let defaultErrorHandler: ErrorHandler;
     let serverCalledProcessExit: boolean = false;
-    //let staticDocuments: DocumentSelector = [{ scheme: 'file', pattern: '**/*.js' }];
+    let staticDocuments: DocumentSelector = _.map(fileExtensions, fileExt => ({ scheme: 'file', pattern: `**/*${fileExt}` }));
     let clientOptions: LanguageClientOptions = {
-        documentSelector: languageIds,
+        documentSelector: staticDocuments,
         diagnosticCollectionName: 'deepscan',
         revealOutputChannelOn: RevealOutputChannelOn.Never,
         synchronize: {
@@ -142,7 +147,7 @@ async function activateClient(context: vscode.ExtensionContext) {
             const defaultUrl = 'https://deepscan.io';
             return {
                 server: configuration ? configuration.get('server', defaultUrl) : defaultUrl,
-                languageIds,
+                fileExtensions,
                 userAgent: `${packageJSON.name}/${packageJSON.version}`
             };
         },
