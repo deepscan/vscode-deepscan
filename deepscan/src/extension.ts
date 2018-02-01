@@ -26,7 +26,7 @@ const packageJSON = vscode.extensions.getExtension('DeepScan.vscode-deepscan').p
 
 // For the support of '.vue' support by languageIds, 'vue' language should be installed.
 //const languageIds = ['javascript', 'javascriptreact', 'typescript', 'typescriptreact', 'vue'];
-const fileExtensions = ['.js', '.jsx', '.ts', '.tsx', '.vue'];
+const fileExtensions = ['.js', '.jsx', '.ts', '.tsx', '.vue', '.mjs'];
 
 namespace CommandIds {
     export const showOutput: string = 'deepscan.showOutputView';
