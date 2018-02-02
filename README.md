@@ -1,5 +1,7 @@
 # VS Code DeepScan
 
+[![DeepScan Grade](https://deepscan.io/api/projects/1808/branches/7873/badge/grade.png)](https://deepscan.io/dashboard/#view=project&pid=1808&bid=7873)
+
 Extension to integrate [DeepScan](https://deepscan.io) into VS Code.
 
 ## Development setup

@@ -1,6 +1,6 @@
 # VS Code DeepScan extension
 
-[![DeepScan Grade](https://deepscan.io/api/projects/488/branches/750/badge/grade.png)](https://deepscan.io/dashboard/#view=project&pid=488&bid=750)
+[![DeepScan Grade](https://deepscan.io/api/projects/1808/branches/7873/badge/grade.png)](https://deepscan.io/dashboard/#view=project&pid=1808&bid=7873)
 
 VS Code extension to detect bugs and quality issues in JavaScript, TypeScript and React. Works with [DeepScan](https://deepscan.io).
 
