@@ -43,6 +43,7 @@ interface Settings {
         server?: string;
         proxy?: string;
         ignoreRules?: (string)[];
+        fileSuffixes?: (string)[];
     }
 }
 
@@ -74,17 +75,20 @@ let connection: IConnection = createConnection(new IPCMessageReader(process), ne
 let settings: Settings = null;
 let documents: TextDocuments = new TextDocuments();
 
-let supportedFileExtensions: string[] = null;
+let supportedFileSuffixes: string[] = null;
 
+// options
 let deepscanServer: string = undefined;
 let proxyServer: string = undefined;
 let userAgent: string = undefined;
 let ignoreRules: string[] = null;
+let DEFAULT_FILE_SUFFIXES: string[] = null;
+let fileSuffixes: string[] = null;
 
 let httpProxy = _.pick(process.env, ['http_proxy']).http_proxy;
 
 function supportsLanguage(document: TextDocument): boolean {
-    return _.includes(supportedFileExtensions, path.extname(document.uri));
+    return _.includes(supportedFileSuffixes, path.extname(document.uri));
 }
 
 // The documents manager listen for text document create, change
@@ -114,17 +118,25 @@ function getServerUrl(url) {
     return detachSlash(url);
 }
 
+function initializeSupportedFileSuffixes() {
+    supportedFileSuffixes = _.union(DEFAULT_FILE_SUFFIXES, fileSuffixes);
+}
+
 connection.onInitialize((params) => {
     let initOptions: {
         server: string;
         proxy: string;
-        fileExtensions: string[];
+        DEFAULT_FILE_SUFFIXES: string[];
+        fileSuffixes: string[];
         userAgent: string;
     } = params.initializationOptions;
     deepscanServer = getServerUrl(initOptions.server);
     proxyServer = initOptions.proxy;
 
-    supportedFileExtensions = initOptions.fileExtensions;
+    DEFAULT_FILE_SUFFIXES = initOptions.DEFAULT_FILE_SUFFIXES;
+    fileSuffixes = initOptions.fileSuffixes;
+    initializeSupportedFileSuffixes();
+
     userAgent = initOptions.userAgent;
     connection.console.info(`Server: ${deepscanServer} (${userAgent})`);
     return {
@@ -166,8 +178,15 @@ connection.onDidChangeConfiguration((params) => {
         changed = true;
     }
 
+    let oldFileSuffixes = fileSuffixes;
+    fileSuffixes = settings.deepscan.fileSuffixes;
+    if (!_.isEqual(fileSuffixes, oldFileSuffixes)) {
+        changed = true;
+        initializeSupportedFileSuffixes();
+    }
+
     if (changed) {
-        connection.console.info(`Configuration changed: ${deepscanServer} (proxy: ${proxyServer})`);
+        connection.console.info(`Configuration changed: ${deepscanServer} (proxy: ${proxyServer}, fileSuffixes: ${fileSuffixes})`);
         // Reinspect any open text documents
         documents.all().forEach(inspect);
     }
@@ -233,7 +252,7 @@ function inspect(identifier: VersionedTextDocumentIdentifier) {
     let textDocument = documents.get(uri);
     let docContent = textDocument.getText();
 
-    const URL = deepscanServer + '/api/demo';
+    const URL = `${deepscanServer}/api/demo`;
     const MAX_LINES = 30000;
 
     function sendDiagnostics(diagnostics) {
@@ -253,8 +272,13 @@ function inspect(identifier: VersionedTextDocumentIdentifier) {
         return;
     }
 
-    // Send filename with extension to parse correctly in server
-    let filename = `demo${path.extname(uri)}`;
+    // Send filename with extension to parse correctly in server.
+    let fileSuffix = path.extname(uri);
+    // The file with a suffix in 'fileSuffixes' will be transmitted as a '.js' file.
+    if (fileSuffixes.indexOf(fileSuffix) !== -1) {
+        fileSuffix = ".js";
+    }
+    let filename = `demo${fileSuffix}`;
 
     let req = request.post({
         proxy: proxyServer || httpProxy,

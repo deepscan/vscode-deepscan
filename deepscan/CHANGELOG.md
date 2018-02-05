@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.5.1
+
+- Provide `deepscan.fileSuffixes` option to set additional suffixes for files to analyze (See this [issue](https://github.com/deepscan/vscode-deepscan/issues/2))
+ - Thanks to @jpike88
+
 ## 1.5.0
 
 - Vue.js support: Support code inspection for `*.vue` files on save

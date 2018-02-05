@@ -36,6 +36,15 @@ This extension contributes the following variables to the settings:
     ]
 }
 ```
+- `deepscan.fileSuffixes`: set an array of additional suffixes for files to analyze. (Needs restart to take affect)
+  An example to analyze '.mjs' file is:
+```json
+{
+    "deepscan.fileSuffixes": [
+        ".mjs"
+    ]
+}
+```
 
 ### Disabling Rules with Inline Comments
 

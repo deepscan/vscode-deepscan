@@ -26,7 +26,10 @@ const packageJSON = vscode.extensions.getExtension('DeepScan.vscode-deepscan').p
 
 // For the support of '.vue' support by languageIds, 'vue' language should be installed.
 //const languageIds = ['javascript', 'javascriptreact', 'typescript', 'typescriptreact', 'vue'];
-const fileExtensions = ['.js', '.jsx', '.ts', '.tsx', '.vue'];
+const DEFAULT_FILE_SUFFIXES = ['.js', '.jsx', '.ts', '.tsx', '.vue'];
+
+let supportedFileSuffixes: string[] = null;
+let fileSuffixes: string[] = null;
 
 namespace CommandIds {
     export const showOutput: string = 'deepscan.showOutputView';
@@ -101,7 +104,7 @@ async function activateClient(context: vscode.ExtensionContext) {
 
     function updateStatusBar(editor: vscode.TextEditor): void {
         let show = serverRunning &&
-                   (deepscanStatus === Status.fail || (editor && _.includes(fileExtensions, path.extname(editor.document.fileName))));
+                   (deepscanStatus === Status.fail || (editor && _.includes(supportedFileSuffixes, path.extname(editor.document.fileName))));
         showStatusBarItem(show);
     }
 
@@ -111,6 +114,33 @@ async function activateClient(context: vscode.ExtensionContext) {
         } else {
             statusBarItem.hide();
         }
+    }
+
+    function changeConfiguration(): void {
+        let oldFileSuffixes = fileSuffixes;
+
+        initializeSupportedFileSuffixes(getDeepScanConfiguration());
+        // NOTE:
+        // To apply changed file suffixes directly, documentSelector of LanguageClient should be changed.
+        // But it seems to be impossible, so VS Code needs to restart.
+        if (!_.isEqual(fileSuffixes, oldFileSuffixes)) {
+            const reload = 'Reload Now';
+            vscode.window.showInformationMessage('Restart VS Code before the new \'deepscan.fileSuffixes\' setting will take affect.', ...[reload])
+                         .then(selection => {
+                             if (selection === reload) {
+                                vscode.commands.executeCommand('workbench.action.reloadWindow');
+                             }
+                         });;
+        }
+    }
+
+    function getFileSuffixes(configuration: vscode.WorkspaceConfiguration): string[] {
+        return configuration ? configuration.get('fileSuffixes', []) : [];
+    }
+
+    function initializeSupportedFileSuffixes(configuration: vscode.WorkspaceConfiguration): void {
+        fileSuffixes = getFileSuffixes(configuration);
+        supportedFileSuffixes = _.union(DEFAULT_FILE_SUFFIXES, fileSuffixes);
     }
 
     let statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 0);
@@ -131,9 +161,13 @@ async function activateClient(context: vscode.ExtensionContext) {
         debug: { module: serverModule, transport: TransportKind.ipc, options: debugOptions }
     };
 
+    let configuration = getDeepScanConfiguration();
+    // Support other file suffixes other than DeepScan server supports.
+    initializeSupportedFileSuffixes(configuration);
+
     let defaultErrorHandler: ErrorHandler;
     let serverCalledProcessExit: boolean = false;
-    let staticDocuments: DocumentSelector = _.map(fileExtensions, fileExt => ({ scheme: 'file', pattern: `**/*${fileExt}` }));
+    let staticDocuments: DocumentSelector = _.map(supportedFileSuffixes, fileSuffix => ({ scheme: 'file', pattern: `**/*${fileSuffix}` }));
     let clientOptions: LanguageClientOptions = {
         documentSelector: staticDocuments,
         diagnosticCollectionName: 'deepscan',
@@ -143,11 +177,11 @@ async function activateClient(context: vscode.ExtensionContext) {
             configurationSection: 'deepscan'
         },
         initializationOptions: () => {
-            let configuration = getDeepScanConfiguration();
             const defaultUrl = 'https://deepscan.io';
             return {
                 server: configuration ? configuration.get('server', defaultUrl) : defaultUrl,
-                fileExtensions,
+                DEFAULT_FILE_SUFFIXES,
+                fileSuffixes: getFileSuffixes(configuration),
                 userAgent: `${packageJSON.name}/${packageJSON.version}`
             };
         },
@@ -244,6 +278,8 @@ async function activateClient(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(CommandIds.showOutput, () => { client.outputChannel.show(); }),
         statusBarItem
     );
+
+    vscode.workspace.onDidChangeConfiguration(changeConfiguration);
 
     await checkSetting();
 }

@@ -2,7 +2,7 @@
     "name": "vscode-deepscan",
     "displayName": "DeepScan",
     "description": "Detect bugs and quality issues in JavaScript, TypeScript and React more precisely",
-    "version": "1.5.0",
+    "version": "1.5.1",
     "author": "DeepScan",
     "publisher": "DeepScan",
     "license": "MIT",
@@ -55,6 +55,17 @@
                 "deepscan.ignoreRules": {
                     "type": "array",
                     "description": "Ignores the rules.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                "deepscan.fileSuffixes": {
+                    "type": "array",
+                    "description": "Additional suffixes for files to analyze.",
                     "items": {
                         "anyOf": [
                             {
