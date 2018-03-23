@@ -102,7 +102,7 @@ class TextDocumentContentProvider implements vscode.TextDocumentContentProvider 
         let content = NO_RULE;
         let rule;
         if (this.rules && (rule = _.find(this.rules, (rule) => rule.key === this.ruleKey))) {
-            const tags = rule.tag.length > 0 ? rule.tag : 'No tags';
+            const tags = _.compact(rule.tag);
             let sees = [];
             _.forEach(rule.cwe, (cwe) => {
                 sees.push(`[CWE-${cwe}](https://cwe.mitre.org/data/definitions/${cwe}.html)`);
@@ -115,7 +115,7 @@ class TextDocumentContentProvider implements vscode.TextDocumentContentProvider 
                 content += `<span class="severity" data-severity="${severity}"><i class="circle"></i>${severity}</span>`;
             });
             content += `<li class="deepscan-rule-detail-property"><span class="icon icon-${rule.type === 'Error' ? 'error' : 'code-quality'}"></span> ${rule.type}
-                        <li class="deepscan-rule-detail-property"><span class="icon icon-tags"></span> ${tags}
+                        <li class="deepscan-rule-detail-property"><span class="icon icon-tags"></span> ${tags.length > 0 ? tags.join(', ') : 'No tags'}
                         <li class="deepscan-rule-detail-property"><span class="icon icon-bookmark"></span> <a href="https://deepscan.io/docs/rules/${slugify(rule.key)}">${rule.key}</a>
                        </ul>
 
@@ -136,6 +136,7 @@ class TextDocumentContentProvider implements vscode.TextDocumentContentProvider 
             }
             content += `</div>`;
         }
+
         return `<style>${this.style}</style><body><div class="deepscan-rule">${content}</div></body>`;
     }
 }
