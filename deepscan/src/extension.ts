@@ -92,10 +92,14 @@ async function activateClient(context: vscode.ExtensionContext) {
         updateStatusBar(vscode.window.activeTextEditor);
     }
 
-    function showNotificationIfNeeded(params: StatusParams) {
+    function clearNotification() {
         if (statusBarMessage) {
             statusBarMessage.dispose();
         }
+    }
+
+    function showNotificationIfNeeded(params: StatusParams) {
+        clearNotification();
 
         if (params.state === Status.fail) {
             statusBarMessage = vscode.window.setStatusBarMessage(`A problem occurred communicating with DeepScan server. (${params.error})`);
@@ -117,6 +121,8 @@ async function activateClient(context: vscode.ExtensionContext) {
     }
 
     function changeConfiguration(): void {
+        clearNotification();
+
         let oldFileSuffixes = fileSuffixes;
 
         initializeSupportedFileSuffixes(getDeepScanConfiguration());
@@ -257,17 +263,23 @@ async function activateClient(context: vscode.ExtensionContext) {
         });
     });
 
-    let fsPath = path.resolve(context.extensionPath, 'resources', 'deepscan-rules.json');
     let rules = [];
     try {
-        let rulesObj = JSON.parse(fs.readFileSync(fsPath).toString());
+        let rulesObj = JSON.parse(fs.readFileSync(path.resolve(context.extensionPath, 'resources', 'deepscan-rules.json')).toString());
         rules = rulesObj.rules;
     } catch (e) {
         vscode.window.showWarningMessage(`Can't read or parse rule definitions: ${e.message}`);
     }
 
+    let style: string = '';
+    try {
+        style = fs.readFileSync(path.resolve(context.extensionPath, 'resources', 'style.css')).toString();
+    } catch (e) {
+        vscode.window.showWarningMessage(`Can't read a style: ${e.message}`);
+    }
+
     // Register code actions
-    const showRuleAction = new showRuleCodeActionProvider(context, rules);
+    const showRuleAction = new showRuleCodeActionProvider(context, {rules, style});
     context.subscriptions.push(vscode.languages.registerCodeActionsProvider(clientOptions.documentSelector, showRuleAction));
     const disableRulesAction = new disableRuleCodeActionProvider(context);
     context.subscriptions.push(vscode.languages.registerCodeActionsProvider(clientOptions.documentSelector, disableRulesAction));

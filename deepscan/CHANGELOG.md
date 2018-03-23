@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.5.3
+
+- Update rule definition (1.12.0-beta)
+- Clear a status bar message for disconnected server when the configuration changes
+- Extract style of rule information into an external file for easier maintenance
+
 ## 1.5.2
 
 - Update rule definition (1.11.0-beta)

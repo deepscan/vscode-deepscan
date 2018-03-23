@@ -1,0 +1,61 @@
+.deepscan-rule {
+}
+.deepscan-rule-detail {
+    padding-left: 0;
+    list-style: none;
+    margin: 10px 0;
+}
+.deepscan-rule-detail-property {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 20px;
+}
+.deepscan-rule-detail-property .icon {
+    display: inline-block;
+    vertical-align: middle;
+    width: 16px;
+    height: 16px;
+}
+.deepscan-rule-detail-property .icon-error {
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAmVBMVEUAAABbo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/+rkRvMAAAAMnRSTlMAAQMEBQcICQoOERMUFRYYGx0eKzc8PT5CSkxPUFZcXnB3gJWXoqWvvMXKz9PX2uv199RVm3kAAACDSURBVBgZBcEHIgMBAADBuQsiehC9O73v/x9nBli7f3/cAsDwVv3OAXsz+1Vdspxj9bEBGO6+F3BVVdXzCBZV68/VClhUmaoVGLarTNXZgOuqMlXVknGnylSdjiMMf5Wp2gW8VKb6AZx8PZWp99dbcPC75fDG8ZHZ5wWcHwHYfAAAwD9lQxR+OFb01QAAAABJRU5ErkJggg==)
+}
+.deepscan-rule-detail-property .icon-code-quality {
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAUVBMVEUAAABbo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo//pfcwXAAAAGnRSTlMAAQIDJScvQUNERUZJSldYZ3mMkaaotbe5+9fZsCIAAABXSURBVBhXlcnbEkAwDATQrbu6U0r+/0MlNTrhxdiX7NkAv2KP4uGGiHJly6aJS2aCa/GWAAutslRizx75OoPy9tVcFw300pXjst8GhpfD4lNloJ31/yMnyccHOl90uCkAAAAASUVORK5CYII=)
+}
+.deepscan-rule-detail-property .icon-tags {
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAvVBMVEUAAABbo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/8zW43DAAAAPnRSTlMAAQIDBAUYGhscHR4fISIjJCUmKCkqLS9AQUJNT1BVV1heX4KIi4yRkpWboKOlqKuwtbe8wMPHyuTz9ff7/RbLMdUAAACKSURBVBgZjcFHAoIwAATAxYCKvfeKHRULdpL9/7MkCF68OIMfpanjjAtGp41YQG1mHs8CEXpGl+TcPPgCGjdoMbQQ3sVEiHwoakuxv5oAfCZWYnuzgJxiYi3cuwU0FRODFF0ADcUPaWfZR6iuqMlK+jlBpKZIynLmNUKsKilLdjDEV/GUN3Y9/OUNe+Eaok/AUf4AAAAASUVORK5CYII=)
+}
+.deepscan-rule-detail-property .icon-bookmark {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAQlBMVEUAAABbo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/9bo/8UV8oIAAAAFXRSTlMAExcdIyQsNT5VaYKIoLy+4PH1+f1nc0kTAAAAPUlEQVQYV83ItxGAMAAAMZFzMNj7r0pBYTgW4LsXS8qN8Pi0/Q7i9Iaz1j/hqNBlCCVoY1ph3gt3TRh8uwB5+A2XhZbNwAAAAABJRU5ErkJggg==')
+}
+.deepscan-rule-detail .severity {
+    padding: 0 3px;
+}
+.deepscan-rule-detail .severity .circle {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 3px;
+}
+.deepscan-rule-detail .severity[data-severity=High] .circle {
+    color: #ff4747;
+    background-color: #ff4747;
+}
+.deepscan-rule-detail .severity[data-severity=Medium] .circle {
+    color: #ffcf4c;
+    background-color: #ffcf4c;
+}
+.deepscan-rule-detail .severity[data-severity=Low] .circle {
+    color: #1fcc7d;
+    background-color: #1fcc7d;
+}
+.deepscan-rule-description h4 {
+    border-bottom: 1px solid #3c4049;
+    padding-bottom: 5px;
+}
+.deepscan-rule-description pre {
+    border: 1px solid rgb(204,204,204);
+    padding: 10px;
+    overflow: auto;
+}

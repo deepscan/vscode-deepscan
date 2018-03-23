@@ -15,13 +15,13 @@ export default class showRuleCodeActionProvider extends deepscanCodeActionProvid
     private command: vscode.Disposable;
     private provider: TextDocumentContentProvider;
 
-    public constructor(context: vscode.ExtensionContext, rules) {
+    public constructor(context: vscode.ExtensionContext, {rules, style}) {
         super('show-rule');
 
         this.command = vscode.commands.registerCommand(this.getCommandId(), this.execute, this);
         context.subscriptions.push(this.command);
 
-        this.provider = new TextDocumentContentProvider(context, rules);
+        this.provider = new TextDocumentContentProvider(context, {rules, style});
         vscode.workspace.registerTextDocumentContentProvider(this.getScheme(), this.provider);
     }
 
@@ -59,22 +59,17 @@ class TextDocumentContentProvider implements vscode.TextDocumentContentProvider 
     private rules;
     private ruleKey: string;
     private converter;
-    private imgBug;
-    private imgCheck;
-    private imgTags;
-    private imgBookmark;
+    private style: string;
 
-    constructor(context: vscode.ExtensionContext, rules) {
+    constructor(context: vscode.ExtensionContext, {rules, style}) {
         this.context = context;
         this.rules = rules;
+        this.style = style;
 
         showdown.setFlavor('github');
         this.converter = new showdown.Converter();
 
-        this.imgBug = new Buffer(fs.readFileSync(path.resolve(this.context.extensionPath, "resources", "fa-bug.png"))).toString('base64');
-        this.imgCheck = new Buffer(fs.readFileSync(path.resolve(this.context.extensionPath, "resources", "fa-check.png"))).toString('base64');
-        this.imgTags = new Buffer(fs.readFileSync(path.resolve(this.context.extensionPath, "resources", "fa-tags.png"))).toString('base64');
-        this.imgBookmark = new Buffer(fs.readFileSync(path.resolve(this.context.extensionPath, "resources", "fa-bookmark.png"))).toString('base64');
+        //this.imgBug = new Buffer(fs.readFileSync(path.resolve(this.context.extensionPath, "resources", "fa-bug.png"))).toString('base64');
     }
 
     public provideTextDocumentContent(uri: vscode.Uri): string {
@@ -109,8 +104,8 @@ class TextDocumentContentProvider implements vscode.TextDocumentContentProvider 
         let content = NO_RULE;
         let rule;
         if (this.rules && (rule = _.find(this.rules, (rule) => rule.key === this.ruleKey))) {
-            let tags = rule.tag.length > 0 ? rule.tag : 'No tags';
-            var sees = [];
+            const tags = rule.tag.length > 0 ? rule.tag : 'No tags';
+            let sees = [];
             _.forEach(rule.cwe, (cwe) => {
                 sees.push(`[CWE-${cwe}](https://cwe.mitre.org/data/definitions/${cwe}.html)`);
             });
@@ -121,9 +116,9 @@ class TextDocumentContentProvider implements vscode.TextDocumentContentProvider 
             _.forEach(rule.severity, (severity) => {
                 content += `<span class="severity" data-severity="${severity}"><i class="circle"></i>${severity}</span>`;
             });
-            content += `<li class="deepscan-rule-detail-property"><img src="data:image/png;base64,${rule.type === 'Error' ? this.imgBug : this.imgCheck}"> ${rule.type}
-                        <li class="deepscan-rule-detail-property"><img src="data:image/png;base64,${this.imgTags}"> ${tags}
-                        <li class="deepscan-rule-detail-property"><img src="data:image/png;base64,${this.imgBookmark}"> <a href="https://deepscan.io/docs/rules/${slugify(rule.key)}">${rule.key}</a>
+            content += `<li class="deepscan-rule-detail-property"><span class="icon icon-${rule.type === 'Error' ? 'error' : 'code-quality'}"></span> ${rule.type}
+                        <li class="deepscan-rule-detail-property"><span class="icon icon-tags"></span> ${tags}
+                        <li class="deepscan-rule-detail-property"><span class="icon icon-bookmark"></span> <a href="https://deepscan.io/docs/rules/${slugify(rule.key)}">${rule.key}</a>
                        </ul>
 
                        <div class="deepscan-rule-description">
@@ -143,60 +138,6 @@ class TextDocumentContentProvider implements vscode.TextDocumentContentProvider 
             }
             content += `</div>`;
         }
-        return `<style>
-                    a {
-                        color: rgb(91,163,255);
-                        text-decoration: none;
-                        outline: none;
-                    }
-                    a:active, a:focus {
-                        outline: none;
-                    }
-
-                    .deepscan-rule-detail {
-                        padding-left: 0;
-                        list-style: none;
-                        margin: 10px 0;
-                    }
-                    .deepscan-rule-detail-property {
-                        display: inline-block;
-                        vertical-align: middle;
-                        margin-right: 20px;
-                    }
-                    .deepscan-rule-detail-property img {
-                        vertical-align: middle;
-                    }
-                    .deepscan-rule-detail .severity {
-                        padding: 0 3px;
-                    }
-                    .deepscan-rule-detail .severity .circle {
-                        width: 10px;
-                        height: 10px;
-                        border-radius: 50%;
-                        display: inline-block;
-                        margin-right: 3px;
-                    }
-                    .deepscan-rule-detail .severity[data-severity="High"] .circle {
-                        color: #ff4747;
-                        background-color: #ff4747;
-                    }
-                    .deepscan-rule-detail .severity[data-severity="Medium"] .circle {
-                        color: #ffcf4c;
-                        background-color: #ffcf4c;
-                    }
-                    .deepscan-rule-detail .severity[data-severity="Low"] .circle {
-                        color: #1fcc7d;
-                        background-color: #1fcc7d;
-                    }
-
-                    .deepscan-rule-description pre {
-                        border: 1px solid rgb(204,204,204);
-                        padding: 10px;
-                        overflow: auto;
-                    }
-                </style>
-                <body>
-                    ${content}
-                </body>`;
+        return `<style>${this.style}</style><body><div class="deepscan-rule">${content}</div></body>`;
     }
 }
