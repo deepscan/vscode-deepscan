@@ -26,7 +26,8 @@ enum Status {
 
 interface StatusParams {
     state: Status,
-    error: string
+    error: string,
+    uri: string
 }
 
 namespace StatusNotification {
@@ -193,28 +194,23 @@ connection.onDidChangeConfiguration((params) => {
 });
 
 connection.onCompletion((_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-    return [
-        {
-            label: 'deepscan-disable',
-            kind: CompletionItemKind.Text,
-            data: 1
-        },
-        {
-            label: 'deepscan-enable',
-            kind: CompletionItemKind.Text,
-            data: 2
-        },
-        {
-            label: 'deepscan-disable-line',
-            kind: CompletionItemKind.Text,
-            data: 3
-        },
-        {
-            label: 'deepscan-enable-line',
-            kind: CompletionItemKind.Text,
-            data: 4
-        }
-    ]
+    return [{
+        label: 'deepscan-disable',
+        kind: CompletionItemKind.Text,
+        data: 1
+    }, {
+        label: 'deepscan-enable',
+        kind: CompletionItemKind.Text,
+        data: 2
+    }, {
+        label: 'deepscan-disable-line',
+        kind: CompletionItemKind.Text,
+        data: 3
+    }, {
+        label: 'deepscan-enable-line',
+        kind: CompletionItemKind.Text,
+        data: 4
+    }];
 });
 
 connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
@@ -261,14 +257,14 @@ function inspect(identifier: VersionedTextDocumentIdentifier) {
 
     if (docContent.trim() === '') {
         sendDiagnostics([]);
-        connection.sendNotification(StatusNotification.type, { state: Status.none });
+        connection.sendNotification(StatusNotification.type, { state: Status.none, uri });
         return;
     }
 
     if (textDocument.lineCount >= MAX_LINES) {
         connection.console.info(`Sorry! We do not support above ${MAX_LINES} lines.`);
         sendDiagnostics([]);
-        connection.sendNotification(StatusNotification.type, { state: Status.none });
+        connection.sendNotification(StatusNotification.type, { state: Status.none, uri });
         return;
     }
 
@@ -296,9 +292,9 @@ function inspect(identifier: VersionedTextDocumentIdentifier) {
 
             // Publish the diagnostics
             sendDiagnostics(diagnostics);
-            connection.sendNotification(StatusNotification.type, { state: diagnostics.length > 0 ? Status.warn : Status.ok });
+            connection.sendNotification(StatusNotification.type, { state: diagnostics.length > 0 ? Status.warn : Status.ok, uri });
         } else {
-            let message = error ? error.message : parseSilently(body);
+            const message = error ? error.message : parseSilently(body);
             connection.console.error(`Failed to inspect: ${message}`);
             // Clear problems
             sendDiagnostics([]);

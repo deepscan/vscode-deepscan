@@ -2,7 +2,7 @@
     "name": "vscode-deepscan",
     "displayName": "DeepScan",
     "description": "Detect bugs and quality issues in JavaScript, TypeScript and React more precisely",
-    "version": "1.5.3",
+    "version": "1.5.4",
     "author": "DeepScan",
     "publisher": "DeepScan",
     "license": "MIT",
@@ -73,6 +73,11 @@
                             }
                         ]
                     }
+                },
+                "deepscan.showDecorators": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Control whether or not to show problems with inline decorators."
                 }
             }
         },

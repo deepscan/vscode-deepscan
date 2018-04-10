@@ -45,6 +45,9 @@ This extension contributes the following variables to the settings:
     ]
 }
 ```
+- `deepscan.showDecorators`: enable/disable to show high and medium problems with inline decorators. Enabled by default.
+
+![Showing problems with inline decorators](deepscan/resources/decorations.gif)
 
 ### Disabling Rules with Inline Comments
 

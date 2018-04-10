@@ -19,8 +19,12 @@ import {
     DocumentSelector
 } from 'vscode-languageclient';
 
+import { CommandIds, Status, StatusNotification, StatusParams } from './types';
+
 import disableRuleCodeActionProvider from './actions/disableRulesCodeActionProvider';
 import showRuleCodeActionProvider from './actions/showRuleCodeActionProvider';
+
+import { activateDecorations } from './deepscanDecorators';
 
 const packageJSON = vscode.extensions.getExtension('DeepScan.vscode-deepscan').packageJSON;
 
@@ -30,26 +34,6 @@ const DEFAULT_FILE_SUFFIXES = ['.js', '.jsx', '.ts', '.tsx', '.vue'];
 
 let supportedFileSuffixes: string[] = null;
 let fileSuffixes: string[] = null;
-
-namespace CommandIds {
-    export const showOutput: string = 'deepscan.showOutputView';
-}
-
-enum Status {
-    none = 0,
-    ok = 1, // No alarm
-    warn = 2, // Any alarm regardless of impact
-    fail = 3 // Analysis failed
-}
-
-interface StatusParams {
-    state: Status,
-    error: string
-}
-
-namespace StatusNotification {
-    export const type = new NotificationType<StatusParams, void>('deepscan/status');
-}
 
 const exitCalled = new NotificationType<[number, string], void>('deepscan/exitCalled');
 
@@ -134,7 +118,7 @@ async function activateClient(context: vscode.ExtensionContext) {
             vscode.window.showInformationMessage('Restart VS Code before the new \'deepscan.fileSuffixes\' setting will take affect.', ...[reload])
                          .then(selection => {
                              if (selection === reload) {
-                                vscode.commands.executeCommand('workbench.action.reloadWindow');
+                                 vscode.commands.executeCommand('workbench.action.reloadWindow');
                              }
                          });;
         }
@@ -228,9 +212,14 @@ async function activateClient(context: vscode.ExtensionContext) {
     client.onReady().then(() => {
         console.log('Client is ready.');
 
+        let { updateDecorations, disposables } = activateDecorations(client);
+        context.subscriptions.push(disposables);
+
         client.onNotification(StatusNotification.type, (params) => {
-            updateStatus(params.state);
+            const { state, uri } = params;
+            updateStatus(state);
             showNotificationIfNeeded(params);
+            updateDecorations(uri);
         });
 
         client.onNotification(exitCalled, (params) => {
@@ -243,7 +232,7 @@ async function activateClient(context: vscode.ExtensionContext) {
     // The command has been defined in the package.json file
     // Now provide the implementation of the command with  registerCommand
     // The commandId parameter must match the command field in package.json
-    let disposable = vscode.commands.registerCommand('deepscan.inspect', () => {
+    let inspectCommand = vscode.commands.registerCommand('deepscan.inspect', () => {
         let textEditor = vscode.window.activeTextEditor;
         if (!textEditor) {
             return;
@@ -286,7 +275,7 @@ async function activateClient(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(
         new SettingMonitor(client, 'deepscan.enable').start(),
-        disposable,
+        inspectCommand,
         vscode.commands.registerCommand(CommandIds.showOutput, () => { client.outputChannel.show(); }),
         statusBarItem
     );

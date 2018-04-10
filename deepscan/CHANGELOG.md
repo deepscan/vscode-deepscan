@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.5.4
+
+- Show inline decorators for high and medium problems
+ - Provide `deepscan.showDecorators` option to control it
+
 ## 1.5.3
 
 - Update rule definition (1.12.0-beta)
