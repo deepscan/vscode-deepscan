@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.5.5
+
+- Update rule definition (1.13.0-beta)
+
 ## 1.5.4
 
 - Show inline decorators for high and medium problems
