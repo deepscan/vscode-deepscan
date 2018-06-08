@@ -158,6 +158,8 @@ async function activateClient(context: vscode.ExtensionContext) {
     let defaultErrorHandler: ErrorHandler;
     let serverCalledProcessExit: boolean = false;
     let staticDocuments: DocumentSelector = _.map(supportedFileSuffixes, fileSuffix => ({ scheme: 'file', pattern: `**/*${fileSuffix}` }));
+    let staticDocumentsForDisablingRules: DocumentSelector = _.filter(staticDocuments, ({ pattern }) => pattern !== '**/*.vue');
+
     let clientOptions: LanguageClientOptions = {
         documentSelector: staticDocuments,
         diagnosticCollectionName: 'deepscan',
@@ -271,7 +273,7 @@ async function activateClient(context: vscode.ExtensionContext) {
     const showRuleAction = new showRuleCodeActionProvider(context, {rules, style});
     context.subscriptions.push(vscode.languages.registerCodeActionsProvider(clientOptions.documentSelector, showRuleAction));
     const disableRulesAction = new disableRuleCodeActionProvider(context);
-    context.subscriptions.push(vscode.languages.registerCodeActionsProvider(clientOptions.documentSelector, disableRulesAction));
+    context.subscriptions.push(vscode.languages.registerCodeActionsProvider(staticDocumentsForDisablingRules, disableRulesAction));
 
     context.subscriptions.push(
         new SettingMonitor(client, 'deepscan.enable').start(),

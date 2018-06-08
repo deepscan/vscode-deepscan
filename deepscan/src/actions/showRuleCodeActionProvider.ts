@@ -6,6 +6,8 @@
 
 import * as _ from 'lodash';
 import * as showdown from 'showdown';
+import * as showdownHtmlEscape from 'showdown-htmlescape';
+
 import * as vscode from 'vscode';
 import deepscanCodeActionProvider from './deepscanCodeActionProvider';
 
@@ -65,7 +67,7 @@ class TextDocumentContentProvider implements vscode.TextDocumentContentProvider 
         this.style = style;
 
         showdown.setFlavor('github');
-        this.converter = new showdown.Converter();
+        this.converter = new showdown.Converter({extensions: [showdownHtmlEscape]});
 
         //this.imgBug = new Buffer(fs.readFileSync(path.resolve(this.context.extensionPath, "resources", "fa-bug.png"))).toString('base64');
     }

@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.5.6
+
+- Update rule definition (1.14.0-beta)
+- Disable `// deepscan-disable-line` code actions for `*.vue` files
+- Apply 'showdown-htmlescape' package to escape HTML entity in markdown
+
 ## 1.5.5
 
 - Update rule definition (1.13.0-beta)
