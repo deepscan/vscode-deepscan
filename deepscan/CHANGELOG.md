@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.5.7
+
+- Update rule definition (1.15.0-beta)
+- For an efficient session, enable cookie of http request
+
 ## 1.5.6
 
 - Update rule definition (1.14.0-beta)

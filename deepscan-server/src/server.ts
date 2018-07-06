@@ -15,7 +15,7 @@ import {
 } from 'vscode-languageserver';
 
 var path = require('path');
-var request = require('request');
+var request = require('request').defaults({jar: true});
 
 enum Status {
     none = 0,
