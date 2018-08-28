@@ -62,17 +62,25 @@ export function activateDecorations(client: LanguageClient) {
         updateDecorationForEditor(activeEditor, client.diagnostics.get(activeEditor.document.uri));
     }
 
-    function updateDecorations(uri) {
+    function clearDecorations(uri: string) {
+        window.visibleTextEditors.forEach((editor: TextEditor) => {
+            if (editor.document && uri === editor.document.uri.toString()) {
+                editor.setDecorations(deepscanDecorationType, []);
+            }
+        });
+    }
+
+    function updateDecorations(uri: string) {
         window.visibleTextEditors.forEach(editor => {
             if (editor.document && uri === editor.document.uri.toString()) {
-                updateDecorationForEditor(editor, client.diagnostics.get(uri));
+                updateDecorationForEditor(editor, client.diagnostics.get(editor.document.uri));
             }
         });
     }
 
     function updateDecorationForEditor(editor: TextEditor, diagnostics) {
         if (!showDecorators) {
-            editor.setDecorations(deepscanDecorationType, []);
+            clearDecorations(editor.document.uri.toString());
             return;
         }
 
@@ -115,7 +123,8 @@ export function activateDecorations(client: LanguageClient) {
     }
 
     return {
-        updateDecorations: updateDecorations,
+        clearDecorations,
+        updateDecorations,
         disposables: Disposable.from(...disposables)
     };
 }

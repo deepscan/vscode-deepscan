@@ -160,6 +160,8 @@ async function activateClient(context: vscode.ExtensionContext) {
     let staticDocuments: DocumentSelector = _.map(supportedFileSuffixes, fileSuffix => ({ scheme: 'file', pattern: `**/*${fileSuffix}` }));
     let staticDocumentsForDisablingRules: DocumentSelector = _.filter(staticDocuments, ({ pattern }) => pattern !== '**/*.vue');
 
+    let activeDecorations;
+
     let clientOptions: LanguageClientOptions = {
         documentSelector: staticDocuments,
         diagnosticCollectionName: 'deepscan',
@@ -192,6 +194,15 @@ async function activateClient(context: vscode.ExtensionContext) {
                 }
                 return defaultErrorHandler.closed();
             }
+        },
+        middleware: {
+            didChange: (event, next) => {
+                // For less noise, hide inline decorators when typing
+                if (event.document === vscode.window.activeTextEditor.document) {
+                    activeDecorations.clearDecorations(event.document.uri.toString());
+                    next(event);
+                }
+            }
         }
     };
 
@@ -214,14 +225,15 @@ async function activateClient(context: vscode.ExtensionContext) {
     client.onReady().then(() => {
         console.log('Client is ready.');
 
-        let { updateDecorations, disposables } = activateDecorations(client);
-        context.subscriptions.push(disposables);
+        activeDecorations = activateDecorations(client);
+
+        context.subscriptions.push(activeDecorations.disposables);
 
         client.onNotification(StatusNotification.type, (params) => {
             const { state, uri } = params;
             updateStatus(state);
             showNotificationIfNeeded(params);
-            updateDecorations(uri);
+            activeDecorations.updateDecorations(uri);
         });
 
         client.onNotification(exitCalled, (params) => {

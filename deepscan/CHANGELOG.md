@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.5.9
+
+- For less noise, hide inline decorators when typing
+
 ## 1.5.8
 
 - Update rule definition (1.16.0-beta)
