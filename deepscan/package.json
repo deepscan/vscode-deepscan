@@ -2,7 +2,7 @@
     "name": "vscode-deepscan",
     "displayName": "DeepScan",
     "description": "Detect bugs and quality issues in JavaScript, TypeScript, React and Vue.js more precisely",
-    "version": "1.5.9",
+    "version": "1.5.10",
     "author": "DeepScan",
     "publisher": "DeepScan",
     "license": "MIT",
@@ -36,25 +36,25 @@
                 "deepscan.enable": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Control whether or not DeepScan is enabled for JavaScript files."
+                    "description": "Controls whether DeepScan inspection should be enabled."
                 },
                 "deepscan.server": {
                     "type": "string",
                     "default": "https://deepscan.io",
-                    "description": "DeepScan server url."
+                    "description": "Configures the DeepScan server url."
                 },
                 "deepscan.proxy": {
                     "type": "string",
-                    "description": "Proxy server url."
+                    "description": "Configures the proxy. If not set will be taken from the http_proxy environment variable."
                 },
                 "deepscan.ignoreConfirmWarning": {
                     "type": "boolean",
-                    "description": "Ignores the confirm warning.",
+                    "description": "Controls whether you allow transferring your code to the DeepScan server without prompt. Transferred code is completely deleted right after the inspection.",
                     "default": false
                 },
                 "deepscan.ignoreRules": {
                     "type": "array",
-                    "description": "Ignores the rules.",
+                    "description": "Configures the rules to be ignored.",
                     "items": {
                         "anyOf": [
                             {
@@ -65,7 +65,7 @@
                 },
                 "deepscan.fileSuffixes": {
                     "type": "array",
-                    "description": "Additional suffixes for files to analyze.",
+                    "description": "Configures additional suffixes for files to analyze.",
                     "items": {
                         "anyOf": [
                             {
@@ -77,7 +77,7 @@
                 "deepscan.showDecorators": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Control whether or not to show problems with inline decorators."
+                    "description": "Controls whether the problem of the code should be shown along with the code."
                 }
             }
         },

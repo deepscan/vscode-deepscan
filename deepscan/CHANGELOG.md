@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.5.10
+
+- Polish the description of settings for the new Settings editor
+
 ## 1.5.9
 
 - For less noise, hide inline decorators when typing
