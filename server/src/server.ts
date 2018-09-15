@@ -64,13 +64,13 @@ function convertSeverity(impact: string): DiagnosticSeverity {
 const exitCalled = new NotificationType<[number, string], void>('deepscan/exitCalled');
 
 const nodeExit = process.exit;
-process.exit = (code?: number) => {
+process.exit = ((code?: number) => {
     let stack = new Error('stack');
     connection.sendNotification(exitCalled, [code ? code : 0, stack.stack]);
     setTimeout(() => {
         nodeExit(code);
     }, 1000);
-}
+}) as any;
 
 let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
 let settings: Settings = null;
@@ -154,9 +154,9 @@ connection.onInitialize((params) => {
     };
 });
 
+// Seems not to be triggered for the change of workspace settings when a user directly changes the setting in settings.json.
 connection.onDidChangeConfiguration((params) => {
     settings = params.settings || {};
-    settings.deepscan = settings.deepscan || {};
 
     let changed = false;
     if (settings.deepscan.server) {
@@ -188,7 +188,7 @@ connection.onDidChangeConfiguration((params) => {
 
     if (changed) {
         connection.console.info(`Configuration changed: ${deepscanServer} (proxy: ${proxyServer}, fileSuffixes: ${fileSuffixes})`);
-        // Reinspect any open text documents
+        // Reinspect any open text documents.
         documents.all().forEach(inspect);
     }
 });

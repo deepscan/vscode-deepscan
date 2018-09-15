@@ -1,5 +1,13 @@
 # Change Log
 
+## 1.6.0
+
+- Restructure directory to `client` and `server`
+- Repackage to include both `client` and `server`
+- Update dependency packages
+- Change supported version to engine 1.25.0
+- Update rule definition (1.17.0-beta)
+
 ## 1.5.10
 
 - Polish the description of settings for the new Settings editor

@@ -144,7 +144,7 @@ async function activateClient(context: vscode.ExtensionContext) {
     updateStatusBar(vscode.window.activeTextEditor);
 
     // We need to go two levels up since an extension compile the js code into the output folder.
-    let serverModule = path.join(__dirname, '..', '..', 'server', 'src', 'server.js');
+    let serverModule = context.asAbsolutePath(path.join('server', 'out', 'server.js'));
     let debugOptions = { execArgv: ["--nolazy", "--debug=6004"] };
     let serverOptions = {
         run: { module: serverModule, transport: TransportKind.ipc },
@@ -268,7 +268,7 @@ async function activateClient(context: vscode.ExtensionContext) {
 
     let rules = [];
     try {
-        let rulesObj = JSON.parse(fs.readFileSync(path.resolve(context.extensionPath, 'resources', 'deepscan-rules.json')).toString());
+        let rulesObj = JSON.parse(fs.readFileSync(context.asAbsolutePath(path.join('client', 'resources', 'deepscan-rules.json'))).toString());
         rules = rulesObj.rules;
     } catch (e) {
         vscode.window.showWarningMessage(`Can't read or parse rule definitions: ${e.message}`);
@@ -276,7 +276,7 @@ async function activateClient(context: vscode.ExtensionContext) {
 
     let style: string = '';
     try {
-        style = fs.readFileSync(path.resolve(context.extensionPath, 'resources', 'style.css')).toString();
+        style = fs.readFileSync(context.asAbsolutePath(path.join('client', 'resources', 'style.css'))).toString();
     } catch (e) {
         vscode.window.showWarningMessage(`Can't read a style: ${e.message}`);
     }

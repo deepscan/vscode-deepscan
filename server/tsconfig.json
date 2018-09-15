@@ -2,12 +2,12 @@
     "compilerOptions": {
         "module": "commonjs",
         "target": "es6",
-        "outDir": "../deepscan/server",
+        "outDir": "out",
+        "rootDir": "src",
         "lib": [
             "es6"
         ],
-        "sourceMap": true,
-        "rootDir": "."
+        "sourceMap": true
     },
     "exclude": [
         "node_modules",

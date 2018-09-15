@@ -2,7 +2,7 @@
     "name": "vscode-deepscan",
     "displayName": "DeepScan",
     "description": "Detect bugs and quality issues in JavaScript, TypeScript, React and Vue.js more precisely",
-    "version": "1.5.10",
+    "version": "1.6.0",
     "author": "DeepScan",
     "publisher": "DeepScan",
     "license": "MIT",
@@ -12,7 +12,7 @@
     },
     "icon": "deepscan_icon.png",
     "engines": {
-        "vscode": "^1.8.0"
+        "vscode": "^1.25.0"
     },
     "categories": [
         "Linters"
@@ -27,7 +27,7 @@
     "activationEvents": [
         "*"
     ],
-    "main": "./out/src/extension",
+    "main": "./client/out/extension",
     "contributes": {
         "configuration": {
             "type": "object",
@@ -81,29 +81,26 @@
                 }
             }
         },
-        "commands": [{
-            "category": "DeepScan",
-            "command": "deepscan.inspect",
-            "title": "Inspect Code"
-        }]
+        "commands": [
+            {
+                "category": "DeepScan",
+                "command": "deepscan.inspect",
+                "title": "Inspect Code"
+            }
+        ]
     },
     "scripts": {
-        "vscode:prepublish": "tsc -p ./",
-        "compile": "tsc -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install",
-        "test": "node ./node_modules/vscode/bin/test"
-    },
-    "dependencies": {
-        "lodash": "^4.17.4",
-        "showdown": "^1.7.1",
-        "showdown-htmlescape": "^0.1.9",
-        "vscode-languageclient": "^3.3.0"
+        "vscode:prepublish": "cd client && npm run update-vscode && cd .. && npm run compile",
+        "compile:client": "tsc -p ./client/tsconfig.json",
+        "compile:server": "tsc -p ./server/tsconfig.json",
+        "watch:client": "tsc -w -p ./client/tsconfig.json",
+        "watch:server": "tsc -w -p ./server/tsconfig.json",
+        "compile": "npm run compile:client && npm run compile:server",
+        "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
+        "install-server": "npm run compile:client && npm run compile:server-to-client"
     },
     "devDependencies": {
-        "typescript": "^2.3.2",
-        "vscode": "^1.0.0",
-        "mocha": "^2.3.3",
-        "@types/node": "^6.0.40",
-        "@types/mocha": "^2.2.32"
+        "typescript": "^2.9.1",
+        "@types/node": "^8.0.0"
     }
 }

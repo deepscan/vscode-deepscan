@@ -1,0 +1,29 @@
+{
+    "name": "vscode-deepscan",
+    "displayName": "DeepScan",
+    "description": "Detect bugs and quality issues in JavaScript, TypeScript, React and Vue.js more precisely",
+    "version": "1.5.11",
+    "author": "DeepScan",
+    "publisher": "DeepScan",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/deepscan/vscode-deepscan.git"
+    },
+    "engines": {
+        "vscode": "^1.25.0"
+    },
+    "scripts": {
+        "update-vscode": "node ./node_modules/vscode/bin/install",
+        "postinstall": "node ./node_modules/vscode/bin/install"
+    },
+    "dependencies": {
+        "lodash": "^4.17.4",
+        "showdown": "^1.7.1",
+        "showdown-htmlescape": "^0.1.9",
+        "vscode-languageclient": "^5.0.1"
+    },
+    "devDependencies": {
+        "vscode": "^1.0.0"
+    }
+}
