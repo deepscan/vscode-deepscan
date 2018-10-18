@@ -79,6 +79,7 @@ let documents: TextDocuments = new TextDocuments();
 let supportedFileSuffixes: string[] = null;
 
 // options
+let enable: boolean = undefined;
 let deepscanServer: string = undefined;
 let proxyServer: string = undefined;
 let userAgent: string = undefined;
@@ -154,36 +155,30 @@ connection.onInitialize((params) => {
     };
 });
 
-// Seems not to be triggered for the change of workspace settings when a user directly changes the setting in settings.json.
+// Note that it may not be triggered when the workspace in on Samba filesystem.
 connection.onDidChangeConfiguration((params) => {
     settings = params.settings || {};
 
     let changed = false;
-    if (settings.deepscan.server) {
-        let oldServer = deepscanServer;
+
+    if (!_.isEqual(deepscanServer, settings.deepscan.server)) {
         deepscanServer = getServerUrl(settings.deepscan.server);
-        if (deepscanServer !== oldServer) {
-            changed = true;
-        }
-    }
-
-    let oldProxyServer = proxyServer;
-    proxyServer = settings.deepscan.proxy;
-    if (proxyServer !== oldProxyServer) {
         changed = true;
     }
 
-    let oldRules = ignoreRules;
-    ignoreRules = settings.deepscan.ignoreRules;
-    if (!_.isEqual(ignoreRules, oldRules)) {
+    if (!_.isEqual(proxyServer, settings.deepscan.proxy)) {
+        proxyServer = settings.deepscan.proxy;
         changed = true;
     }
 
-    let oldFileSuffixes = fileSuffixes;
-    fileSuffixes = settings.deepscan.fileSuffixes;
-    if (!_.isEqual(fileSuffixes, oldFileSuffixes)) {
+    if (!_.isEqual(ignoreRules, settings.deepscan.ignoreRules)) {
+        ignoreRules = settings.deepscan.ignoreRules;
         changed = true;
+    }
+
+    if (!_.isEqual(fileSuffixes, settings.deepscan.fileSuffixes)) {
         initializeSupportedFileSuffixes();
+        changed = true;
     }
 
     if (changed) {

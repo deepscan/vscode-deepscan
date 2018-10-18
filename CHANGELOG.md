@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.6.1
+
+- Update rule definition (1.18.0)
+- Update packages for potential security vulnerabilities: `lodash`
+
 ## 1.6.0
 
 - Restructure directory to `client` and `server`
