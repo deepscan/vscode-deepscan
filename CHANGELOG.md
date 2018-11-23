@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.6.2
+
+- Update rule definition (1.19.0)
+
 ## 1.6.1
 
 - Update rule definition (1.18.0)
