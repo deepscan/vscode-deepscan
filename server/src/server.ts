@@ -26,7 +26,7 @@ enum Status {
 
 interface StatusParams {
     state: Status,
-    error: string,
+    message: string,
     uri: string
 }
 
@@ -35,7 +35,6 @@ namespace StatusNotification {
 }
 
 namespace CommandIds {
-    export const inspectCode: string = 'deepscan.tryInspect';
 }
 
 interface Settings {
@@ -145,7 +144,7 @@ connection.onInitialize((params) => {
         capabilities: {
             textDocumentSync: TextDocumentSyncKind.None,
             executeCommandProvider: {
-                commands: [CommandIds.inspectCode]
+                commands: []
             },
             // Tell the client that the server support code complete
             completionProvider: {
@@ -211,31 +210,25 @@ connection.onCompletion((_textDocumentPosition: TextDocumentPositionParams): Com
 connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
     switch (item.data) {
         case 1:
-            item.detail = 'DeepScan directives',
-            item.documentation = 'Disable rules from the position'
+            item.detail = 'DeepScan directives';
+            item.documentation = 'Disable rules from the position';
             break;
         case 2:
-            item.detail = 'DeepScan directives',
-            item.documentation = 'Enable rules from the position'
+            item.detail = 'DeepScan directives';
+            item.documentation = 'Enable rules from the position';
             break;
         case 3:
-            item.detail = 'DeepScan directives',
-            item.documentation = 'Disable rules in the current line'
+            item.detail = 'DeepScan directives';
+            item.documentation = 'Disable rules in the current line';
             break;
         case 4:
-            item.detail = 'DeepScan directives',
-            item.documentation = 'Disable rules in the next line'
+            item.detail = 'DeepScan directives';
+            item.documentation = 'Disable rules in the next line';
             break;
     }
     return item;
 });
 
-connection.onExecuteCommand((params) => {
-    if (params.command === CommandIds.inspectCode) {
-        let identifier: VersionedTextDocumentIdentifier = params.arguments[0];
-        inspect(identifier);
-    }
-});
 connection.listen();
 
 function inspect(identifier: VersionedTextDocumentIdentifier) {
@@ -252,14 +245,12 @@ function inspect(identifier: VersionedTextDocumentIdentifier) {
 
     if (docContent.trim() === '') {
         sendDiagnostics([]);
-        connection.sendNotification(StatusNotification.type, { state: Status.none, uri });
         return;
     }
 
     if (textDocument.lineCount >= MAX_LINES) {
         connection.console.info(`Sorry! We do not support above ${MAX_LINES} lines.`);
         sendDiagnostics([]);
-        connection.sendNotification(StatusNotification.type, { state: Status.none, uri });
         return;
     }
 
@@ -293,7 +284,7 @@ function inspect(identifier: VersionedTextDocumentIdentifier) {
             connection.console.error(`Failed to inspect: ${message}`);
             // Clear problems
             sendDiagnostics([]);
-            connection.sendNotification(StatusNotification.type, { state: Status.fail, error: message });
+            connection.sendNotification(StatusNotification.type, { state: Status.fail, message });
         }
     });
     var form = req.form();
@@ -314,7 +305,8 @@ function getResult(result): Diagnostic[] {
 }
 
 function makeDiagnostic(alarm): Diagnostic {
-    let message = alarm.message;
+    // Just escape a tag like '<textarea>' instead of 'x >= 0'.
+    let message = alarm.message.replace(/<(\w+)[^>]*>/g, "&lt;$1&gt;");
     let l = parseLocation(alarm.location);
     let startLine = Math.max(0, l.startLine - 1);
     let startChar = Math.max(0, l.startCh - 1);

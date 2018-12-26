@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.7.0
+
+- Update rule definition (1.20.0)
+- Escape HTML tags in the alarm message so display it correctly in **Problems** view
+- Remove 'Inspect Code' command. It's a bit redundant with the analysis for opening and saving the current file.
+- Support embedded mode with Java server
+
 ## 1.6.2
 
 - Update rule definition (1.19.0)

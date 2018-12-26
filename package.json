@@ -2,7 +2,7 @@
     "name": "vscode-deepscan",
     "displayName": "DeepScan",
     "description": "Detect bugs and quality issues in JavaScript, TypeScript, React and Vue.js more precisely",
-    "version": "1.6.2",
+    "version": "1.7.0",
     "author": "DeepScan",
     "publisher": "DeepScan",
     "license": "MIT",
@@ -63,9 +63,20 @@
                         ]
                     }
                 },
+                "deepscan.ignorePatterns": {
+                    "type": "array",
+                    "description": "Configures the files to be ignored. (Applied only to 'Inspect Project')",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
                 "deepscan.fileSuffixes": {
                     "type": "array",
-                    "description": "Configures additional suffixes for files to analyze.",
+                    "description": "Configures additional suffixes for files to analyze. (Restart required)",
                     "items": {
                         "anyOf": [
                             {
@@ -78,14 +89,32 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Controls whether the problem of the code should be shown along with the code."
+                },
+                "deepscan.serverEmbedded.enable": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Controls whether DeepScan inspection should be executed via the the embedded server rather than DeepScan server. (Restart required)"
+                },
+                "deepscan.serverEmbedded.serverJar": {
+                    "type": "string",
+                    "description": "Configures the JAR file for the embedded server. (Restart required)"
+                },
+                "deepscan.serverEmbedded.license": {
+                    "type": "string",
+                    "description": "Configures the license for the embedded analysis."
                 }
             }
         },
         "commands": [
             {
                 "category": "DeepScan",
-                "command": "deepscan.inspect",
-                "title": "Inspect Code"
+                "command": "deepscan.inspectProject",
+                "title": "Inspect Project"
+            },
+            {
+                "category": "DeepScan",
+                "command": "deepscan.clearProject",
+                "title": "Clear Project Problems"
             }
         ]
     },

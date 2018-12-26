@@ -67,7 +67,8 @@ Read more about it [here](https://deepscan.io/docs/get-started/disabling-rules/)
 
 This extension contributes the following commands to the Command palette.
 
-- `Inspect Code`: inspect the current JavaScript file.
+- `Inspect Project`: inspect the current project. (enabled only in embedded mode)
+- `Clear Project Problems`: clear inspected problems. (enabled only in embedded mode)
 
 ## Using behind a proxy
 

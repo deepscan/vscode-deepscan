@@ -92,10 +92,9 @@ export function activateDecorations(client: LanguageClient) {
         result = _.filter(result, ({ severity }) => severity === DiagnosticSeverity.Error.valueOf());
         let decorations = result.map(({ startLine, startChar, endLine, endChar, message }) => ({
             range: new Range(startLine, 0, endLine, 1000),
-            hoverMessage: message,
             renderOptions: {
                 after: {
-                    contentText: `  ← ${message}`
+                    contentText: `  ← ${_.unescape(message)}`
                 }
             }
         }));

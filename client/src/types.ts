@@ -35,7 +35,7 @@ export interface Suggestion {
 
 export interface StatusParams {
     state: Status,
-    error: string,
+    message: string,
     uri: string,
     suggestions: Suggestion[]
 }

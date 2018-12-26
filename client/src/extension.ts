@@ -4,6 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 'use strict';
 
+import * as child_process from "child_process";
 import * as _ from 'lodash';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -15,8 +16,9 @@ import {
     LanguageClient, LanguageClientOptions, SettingMonitor, TransportKind,
     NotificationType, ErrorHandler,
     ErrorAction, CloseAction, State as ClientState,
-    RevealOutputChannelOn, VersionedTextDocumentIdentifier, ExecuteCommandRequest, ExecuteCommandParams,
-    DocumentSelector
+    RevealOutputChannelOn, ExecuteCommandRequest, ExecuteCommandParams,
+    DocumentSelector,
+    StreamInfo
 } from 'vscode-languageclient';
 
 import { CommandIds, Status, StatusNotification, StatusParams } from './types';
@@ -31,11 +33,13 @@ const packageJSON = vscode.extensions.getExtension('DeepScan.vscode-deepscan').p
 // For the support of '.vue' support by languageIds, 'vue' language should be installed.
 //const languageIds = ['javascript', 'javascriptreact', 'typescript', 'typescriptreact', 'vue'];
 const DEFAULT_FILE_SUFFIXES = ['.js', '.jsx', '.ts', '.tsx', '.vue'];
+const DIAGNOSTIC_SOURCE_NAME = 'deepscan';
 
-let supportedFileSuffixes: string[] = null;
-let fileSuffixes: string[] = null;
+let oldConfig;
 
 const exitCalled = new NotificationType<[number, string], void>('deepscan/exitCalled');
+
+let client: LanguageClient = null;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -55,9 +59,6 @@ async function activateClient(context: vscode.ExtensionContext) {
     function updateStatus(status: Status) {
         let tooltip = statusBarItem.tooltip;
         switch (status) {
-            case Status.none:
-                statusBarItem.color = undefined;
-                break;
             case Status.ok:
                 statusBarItem.color = 'lightgreen';
                 tooltip = 'Issue-free!';
@@ -86,13 +87,15 @@ async function activateClient(context: vscode.ExtensionContext) {
         clearNotification();
 
         if (params.state === Status.fail) {
-            statusBarMessage = vscode.window.setStatusBarMessage(`A problem occurred communicating with DeepScan server. (${params.error})`);
+            statusBarMessage = vscode.window.setStatusBarMessage(`A problem occurred communicating with DeepScan server. (${params.message})`);
+        } else {
+            statusBarMessage = vscode.window.setStatusBarMessage(`${params.message}`);
         }
     }
 
     function updateStatusBar(editor: vscode.TextEditor): void {
         let show = serverRunning &&
-                   (deepscanStatus === Status.fail || (editor && _.includes(supportedFileSuffixes, path.extname(editor.document.fileName))));
+                   (deepscanStatus === Status.fail || (editor && _.includes(getFileSuffixes(getDeepScanConfiguration()), path.extname(editor.document.fileName))));
         showStatusBarItem(show);
     }
 
@@ -104,33 +107,37 @@ async function activateClient(context: vscode.ExtensionContext) {
         }
     }
 
+    function isConfigurationChanged(key, oldConfig, newConfig) {
+        return !_.isEqual(oldConfig.get(key), newConfig.get(key));
+    }
+
     function changeConfiguration(): void {
         clearNotification();
 
-        let oldFileSuffixes = fileSuffixes;
+        const newConfig = getDeepScanConfiguration();
 
-        initializeSupportedFileSuffixes(getDeepScanConfiguration());
+        const isChanged = isConfigurationChanged('fileSuffixes', oldConfig, newConfig) ||
+                          isConfigurationChanged('serverEmbedded.enable', oldConfig, newConfig) ||
+                          isConfigurationChanged('serverEmbedded.serverJar', oldConfig, newConfig);
+
         // NOTE:
         // To apply changed file suffixes directly, documentSelector of LanguageClient should be changed.
         // But it seems to be impossible, so VS Code needs to restart.
-        if (!_.isEqual(fileSuffixes, oldFileSuffixes)) {
+        if (isChanged) {
+            oldConfig = newConfig;
             const reload = 'Reload Now';
-            vscode.window.showInformationMessage('Restart VS Code before the new \'deepscan.fileSuffixes\' setting will take affect.', ...[reload])
+            vscode.window.showInformationMessage('Restart VS Code before the new setting will take affect.', ...[reload])
                          .then(selection => {
                              if (selection === reload) {
                                  vscode.commands.executeCommand('workbench.action.reloadWindow');
                              }
-                         });;
+                         });
         }
     }
 
     function getFileSuffixes(configuration: vscode.WorkspaceConfiguration): string[] {
-        return configuration ? configuration.get('fileSuffixes', []) : [];
-    }
-
-    function initializeSupportedFileSuffixes(configuration: vscode.WorkspaceConfiguration): void {
-        fileSuffixes = getFileSuffixes(configuration);
-        supportedFileSuffixes = _.union(DEFAULT_FILE_SUFFIXES, fileSuffixes);
+        const fileSuffixes = configuration ? configuration.get('fileSuffixes', []) : [];
+        return _.union(DEFAULT_FILE_SUFFIXES, fileSuffixes);
     }
 
     let statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 0);
@@ -143,28 +150,31 @@ async function activateClient(context: vscode.ExtensionContext) {
     vscode.window.onDidChangeActiveTextEditor(updateStatusBar);
     updateStatusBar(vscode.window.activeTextEditor);
 
-    // We need to go two levels up since an extension compile the js code into the output folder.
-    let serverModule = context.asAbsolutePath(path.join('server', 'out', 'server.js'));
-    let debugOptions = { execArgv: ["--nolazy", "--debug=6004"] };
-    let serverOptions = {
-        run: { module: serverModule, transport: TransportKind.ipc },
-        debug: { module: serverModule, transport: TransportKind.ipc, options: debugOptions }
-    };
+    const configuration = oldConfig = getDeepScanConfiguration();
+    //const configuration = getDeepScanConfiguration();
 
-    let configuration = getDeepScanConfiguration();
-    // Support other file suffixes other than DeepScan server supports.
-    initializeSupportedFileSuffixes(configuration);
+    let serverOptions;
+    if (isEmbedded()) {
+        serverOptions = () => runServer();
+    } else {
+        let serverModule = context.asAbsolutePath(path.join('server', 'out', 'server.js'));
+        let debugOptions = { execArgv: ["--nolazy", "--debug=6004"] };
+        serverOptions = {
+            run: { module: serverModule, transport: TransportKind.ipc },
+            debug: { module: serverModule, transport: TransportKind.ipc, options: debugOptions }
+        };
+    }
 
     let defaultErrorHandler: ErrorHandler;
     let serverCalledProcessExit: boolean = false;
-    let staticDocuments: DocumentSelector = _.map(supportedFileSuffixes, fileSuffix => ({ scheme: 'file', pattern: `**/*${fileSuffix}` }));
+    let staticDocuments: DocumentSelector = _.map(getFileSuffixes(configuration), fileSuffix => ({ scheme: 'file', pattern: `**/*${fileSuffix}` }));
     let staticDocumentsForDisablingRules: DocumentSelector = _.filter(staticDocuments, ({ pattern }) => pattern !== '**/*.vue');
 
     let activeDecorations;
 
     let clientOptions: LanguageClientOptions = {
         documentSelector: staticDocuments,
-        diagnosticCollectionName: 'deepscan',
+        diagnosticCollectionName: DIAGNOSTIC_SOURCE_NAME,
         revealOutputChannelOn: RevealOutputChannelOn.Never,
         synchronize: {
             // Synchronize the setting section 'deepscan' to the server
@@ -176,7 +186,8 @@ async function activateClient(context: vscode.ExtensionContext) {
                 server: configuration ? configuration.get('server', defaultUrl) : defaultUrl,
                 DEFAULT_FILE_SUFFIXES,
                 fileSuffixes: getFileSuffixes(configuration),
-                userAgent: `${packageJSON.name}/${packageJSON.version}`
+                userAgent: `${packageJSON.name}/${packageJSON.version}`,/*
+                license: configuration ? configuration.get('serverEmbedded.license', '') : '',*/
             };
         },
         initializationFailedHandler: (error) => {
@@ -206,7 +217,7 @@ async function activateClient(context: vscode.ExtensionContext) {
         }
     };
 
-    let client = new LanguageClient('DeepScan', serverOptions, clientOptions);
+    client = new LanguageClient('DeepScan', serverOptions, clientOptions);
     defaultErrorHandler = client.createDefaultErrorHandler();
     const running = 'DeepScan server is running.';
     const stopped = 'DeepScan server stopped.';
@@ -226,7 +237,6 @@ async function activateClient(context: vscode.ExtensionContext) {
         console.log('Client is ready.');
 
         activeDecorations = activateDecorations(client);
-
         context.subscriptions.push(activeDecorations.disposables);
 
         client.onNotification(StatusNotification.type, (params) => {
@@ -242,33 +252,12 @@ async function activateClient(context: vscode.ExtensionContext) {
             vscode.window.showErrorMessage(`DeepScan server shut down. See 'DeepScan' output channel for details.`);
         });
     });
-
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with  registerCommand
-    // The commandId parameter must match the command field in package.json
-    let inspectCommand = vscode.commands.registerCommand('deepscan.inspect', () => {
-        let textEditor = vscode.window.activeTextEditor;
-        if (!textEditor) {
-            return;
-        }
-        let textDocument: VersionedTextDocumentIdentifier = {
-            uri: textEditor.document.uri.toString(),
-            version: textEditor.document.version
-        };
-        let params: ExecuteCommandParams = {
-            command: 'deepscan.tryInspect',
-            arguments: [textDocument]
-        }
-
-        client.sendRequest(ExecuteCommandRequest.type, params).then(undefined, (error) => {
-            console.error('Server failed', error);
-            vscode.window.showErrorMessage('Failed to inspect. Please consider opening an issue with steps to reproduce.');
-        });
-    });
+    const disposable = new SettingMonitor(client, 'deepscan.enable').start();
+    context.subscriptions.push(disposable);
 
     let rules = [];
     try {
-        let rulesObj = JSON.parse(fs.readFileSync(context.asAbsolutePath(path.join('client', 'resources', 'deepscan-rules.json'))).toString());
+        const rulesObj = JSON.parse(fs.readFileSync(context.asAbsolutePath(path.join('client', 'resources', 'deepscan-rules.json'))).toString());
         rules = rulesObj.rules;
     } catch (e) {
         vscode.window.showWarningMessage(`Can't read or parse rule definitions: ${e.message}`);
@@ -288,8 +277,14 @@ async function activateClient(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerCodeActionsProvider(staticDocumentsForDisablingRules, disableRulesAction));
 
     context.subscriptions.push(
-        new SettingMonitor(client, 'deepscan.enable').start(),
-        inspectCommand,
+        registerEmbeddedCommand('deepscan.inspectProject', (command) => {
+            const diagnostics = vscode.languages.getDiagnostics();
+            sendRequest(command, [diagnostics]);
+        }),
+        registerEmbeddedCommand('deepscan.clearProject', (command) => {
+            const diagnostics = vscode.languages.getDiagnostics();
+            sendRequest(command, [diagnostics]);
+        }),
         vscode.commands.registerCommand(CommandIds.showOutput, () => { client.outputChannel.show(); }),
         statusBarItem
     );
@@ -299,15 +294,45 @@ async function activateClient(context: vscode.ExtensionContext) {
     await checkSetting();
 }
 
+function sendRequest(command: string, args: any[] = []) {
+    const params: ExecuteCommandParams = {
+        command,
+        arguments: args
+    }
+
+    client.sendRequest(ExecuteCommandRequest.type, params).then(undefined, (error) => {
+        console.error('Server failed', error);
+        vscode.window.showErrorMessage('Failed to inspect. Please consider opening an issue with steps to reproduce.');
+    });
+}
+
+function registerEmbeddedCommand(command: string, handler) {
+    const embeddedCommand = vscode.commands.registerCommand(command, () => {
+        if (!isEmbedded()) {
+            const message = `This command ${command} is supported only in the embedded mode.`;
+            warn(message, true);
+            return;
+        }
+
+        handler(command);
+    });
+    return embeddedCommand;
+}
+
 async function checkSetting() {
     const config = getDeepScanConfiguration();
-    const shouldIgnore = config.get('ignoreConfirmWarning') === true;
 
-    if (shouldIgnore) {
+    if (isEmbedded()) {
+        await config.update('enable', true, false);
         return;
     }
 
     if (config.get('enable') === true) {
+        return;
+    }
+
+    const shouldIgnore = config.get('ignoreConfirmWarning') === true;
+    if (shouldIgnore) {
         return;
     }
 
@@ -325,4 +350,49 @@ async function checkSetting() {
 
 function getDeepScanConfiguration(): vscode.WorkspaceConfiguration {
     return vscode.workspace.getConfiguration('deepscan');
+}
+
+function warn(message: string, showMessage: boolean = false) {
+    client.warn(message);
+    if (showMessage) {
+        vscode.window.showWarningMessage(message);
+    }
+}
+
+function isEmbedded(): boolean {
+    return getDeepScanConfiguration().get("serverEmbedded.enable");
+}
+
+function runServer(): Thenable<StreamInfo> {
+    return new Promise((resolve, reject) => {
+        const serverJar: string = getDeepScanConfiguration().get('serverEmbedded.serverJar');
+        if (!fs.existsSync(serverJar)) {
+            const message = 'JAR file for the DeepScan embedded server does not exist. Please set the right path and restart VS Code.';
+            warn(message, true);
+            // TODO: reject() is the right way?
+            return resolve({
+                reader: process.stdin,
+                writer: process.stdout
+            });
+        }
+        const options = { cwd: vscode.workspace.rootPath };
+        const params = [];
+        params.push('-jar', serverJar);
+        const child = child_process.spawn('java', params, options);
+        child.on('error', function (e) {
+            client.error('Cannot start the DeepScan server.', e);
+            vscode.window.showErrorMessage(`Cannot start the DeepScan server: ${e.message}`);
+        });
+
+        console.log('Server spawned: ' + serverJar);
+        // Make a wire with the language server.
+        resolve({
+            reader: child.stdout,
+            writer: child.stdin
+        });
+
+        child.stderr.on('data', function (data) {
+            console.log(data.toString()); 
+        });
+    });
 }
