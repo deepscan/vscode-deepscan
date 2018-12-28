@@ -136,8 +136,11 @@ async function activateClient(context: vscode.ExtensionContext) {
     }
 
     function getFileSuffixes(configuration: vscode.WorkspaceConfiguration): string[] {
-        const fileSuffixes = configuration ? configuration.get('fileSuffixes', []) : [];
-        return _.union(DEFAULT_FILE_SUFFIXES, fileSuffixes);
+        return configuration ? configuration.get('fileSuffixes', []) : [];
+    }
+
+    function getSupportedFileSuffixes(configuration: vscode.WorkspaceConfiguration): string[] {
+        return _.union(DEFAULT_FILE_SUFFIXES, getFileSuffixes(configuration));
     }
 
     let statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 0);
@@ -158,7 +161,7 @@ async function activateClient(context: vscode.ExtensionContext) {
         serverOptions = () => runServer();
     } else {
         let serverModule = context.asAbsolutePath(path.join('server', 'out', 'server.js'));
-        let debugOptions = { execArgv: ["--nolazy", "--debug=6004"] };
+        let debugOptions = { execArgv: ["--nolazy", "--inspect=6004"] };
         serverOptions = {
             run: { module: serverModule, transport: TransportKind.ipc },
             debug: { module: serverModule, transport: TransportKind.ipc, options: debugOptions }
@@ -167,7 +170,7 @@ async function activateClient(context: vscode.ExtensionContext) {
 
     let defaultErrorHandler: ErrorHandler;
     let serverCalledProcessExit: boolean = false;
-    let staticDocuments: DocumentSelector = _.map(getFileSuffixes(configuration), fileSuffix => ({ scheme: 'file', pattern: `**/*${fileSuffix}` }));
+    let staticDocuments: DocumentSelector = _.map(getSupportedFileSuffixes(configuration), fileSuffix => ({ scheme: 'file', pattern: `**/*${fileSuffix}` }));
     let staticDocumentsForDisablingRules: DocumentSelector = _.filter(staticDocuments, ({ pattern }) => pattern !== '**/*.vue');
 
     let activeDecorations;

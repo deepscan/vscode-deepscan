@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.7.1
+
+- Fix SYNTAX_ERROR problems that analyze *.ts or *.vue files as *.js files (See this [issue](https://github.com/deepscan/vscode-deepscan/issues/5))
+ - Thanks to @NAlexandrov
+
 ## 1.7.0
 
 - Update rule definition (1.20.0)
