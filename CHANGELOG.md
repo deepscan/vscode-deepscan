@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.7.2
+
+- Fix a problem DeepScan's status bar is not shown
+
 ## 1.7.1
 
 - Fix SYNTAX_ERROR problems that analyze *.ts or *.vue files as *.js files (See this [issue](https://github.com/deepscan/vscode-deepscan/issues/5))

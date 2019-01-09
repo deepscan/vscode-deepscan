@@ -94,8 +94,8 @@ async function activateClient(context: vscode.ExtensionContext) {
     }
 
     function updateStatusBar(editor: vscode.TextEditor): void {
-        let show = serverRunning &&
-                   (deepscanStatus === Status.fail || (editor && _.includes(getFileSuffixes(getDeepScanConfiguration()), path.extname(editor.document.fileName))));
+        const isValidSuffix = editor && _.includes(getSupportedFileSuffixes(getDeepScanConfiguration()), path.extname(editor.document.fileName));
+        const show = serverRunning && (deepscanStatus === Status.fail || isValidSuffix);
         showStatusBarItem(show);
     }
 
