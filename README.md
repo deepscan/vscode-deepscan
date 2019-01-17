@@ -63,12 +63,21 @@ By **Ignore this line** and **Ignore this rule** code actions, you can add an in
 
 Read more about it [here](https://deepscan.io/docs/get-started/disabling-rules/).
 
-## Commands
+## Embedded Mode
 
-This extension contributes the following commands to the Command palette.
+> **Note:**
+> This is a premium feature.
+>
+> DeepScan supports an embedded mode, which works standalone without DeepScan server. It works with the local language server so you can:
+> * never worry about transferring the code outside.
+> * analyze a whole project rather than a file.
+>
+> To activate this, contact us at [support@deepscan.io](mailto://support@deepscan.io).
 
-- `Inspect Project`: inspect the current project. (enabled only in embedded mode)
-- `Clear Project Problems`: clear inspected problems. (enabled only in embedded mode)
+In the embedded mode, this extension contributes the following commands to the Command palette.
+
+- `Inspect Project`: inspect the current project.
+- `Clear Project Problems`: clear inspected problems.
 
 ## Using behind a proxy
 
