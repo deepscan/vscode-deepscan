@@ -72,7 +72,7 @@ Read more about it [here](https://deepscan.io/docs/get-started/disabling-rules/)
 > * never worry about transferring the code outside.
 > * analyze a whole project rather than a file.
 >
-> To activate this, contact us at [support@deepscan.io](mailto://support@deepscan.io).
+> To activate this, contact us at [support@deepscan.io](mailto:support@deepscan.io).
 
 In the embedded mode, this extension contributes the following commands to the Command palette.
 

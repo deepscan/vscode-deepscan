@@ -313,7 +313,8 @@ function makeDiagnostic(alarm): Diagnostic {
     let endLine = l.endLine != null ? Math.max(0, l.endLine - 1) : startLine;
     let endChar = l.endCh != null ? Math.max(0, l.endCh - 1) : startChar;
     return {
-        message: `${message} (${alarm.name})`,
+        /*message: `${message} (${alarm.name})`,*/
+        message: `${message}`, // VS Code displays 'code' like '<message> [<code>]'
         severity: convertSeverity(alarm.impact),
         source: 'deepscan',
         range: {

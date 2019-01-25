@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.7.3
+
+- Update rule definition (1.21.0)
+- Fix a weird 'undefined' message in the status bar
+- Remove alarm name in the alarm message
+- Update README for embedded mode
+
 ## 1.7.2
 
 - Fix a problem DeepScan's status bar is not shown
