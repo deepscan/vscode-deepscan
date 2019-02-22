@@ -32,7 +32,7 @@ import { sendRequest, warn } from './utils';
 const packageJSON = vscode.extensions.getExtension('DeepScan.vscode-deepscan').packageJSON;
 
 // Just use file extensions rather than languageIds because a languageId needs an installation of the language.
-const DEFAULT_FILE_SUFFIXES = ['.js', '.jsx', '.ts', '.tsx', '.vue'];
+const DEFAULT_FILE_SUFFIXES = ['.js', '.jsx', '.ts', '.tsx', '.vue', '.mjs'];
 const DIAGNOSTIC_SOURCE_NAME = 'deepscan';
 
 let oldConfig;

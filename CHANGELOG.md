@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.8.0
+
+- Update rule definition (1.22.0)
+- Support ECMAScript Modules file (`*.mjs`) by default
+
 ## 1.7.3
 
 - Update rule definition (1.21.0)

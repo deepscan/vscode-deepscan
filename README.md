@@ -16,7 +16,7 @@ DeepScan is a cutting-edge JavaScript code inspection tool that helps you to fin
 
 ## How it works
 
-- Report issues in Problems panel when you open a `*.js`, `*.jsx`, `*.ts`, `*.tsx`, or `*.vue` file and save it.
+- Report issues in Problems panel when you open a `*.js`, `*.jsx`, `*.mjs`, `*.ts`, `*.tsx`, and `*.vue` file and save it.
 - Highlight issues in the code.
 - Show a rule description using a code action. When you click the light bulb of the issue, you can see the detailed description of the rule and grasp what's the problem.
 
@@ -37,11 +37,11 @@ This extension contributes the following variables to the settings:
 }
 ```
 - `deepscan.fileSuffixes`: set an array of additional suffixes for files to analyze. (Needs restart to take affect)
-  An example to analyze '.mjs' file is:
+  An example to analyze `*.es` file as a JavaScript file is:
 ```json
 {
     "deepscan.fileSuffixes": [
-        ".mjs"
+        ".es"
     ]
 }
 ```
