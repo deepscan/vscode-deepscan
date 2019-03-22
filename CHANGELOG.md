@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.8.1
+
+- Update rule definition (1.23.0)
+- [DUPLICATE_DECL](https://deepscan.io/docs/rules/duplicate-decl), [UNUSED_DECL](https://deepscan.io/docs/rules/unused-decl) and [UNUSED_VAR_ASSIGN](https://deepscan.io/docs/rules/unused-var-assign) alarms are filtered on test case code. For more information, see [here](https://deepscan.io/docs/guides/get-started/analyzing-source-code#excluded-test-rules).
+- Remove an insufficient escaping for HTML tags in the alarm message so display it by the way **Problems** view supports
+
 ## 1.8.0
 
 - Update rule definition (1.22.0)

@@ -305,15 +305,13 @@ function getResult(result): Diagnostic[] {
 }
 
 function makeDiagnostic(alarm): Diagnostic {
-    // Just escape a tag like '<textarea>' instead of 'x >= 0'.
-    let message = alarm.message.replace(/<(\w+)[^>]*>/g, "&lt;$1&gt;");
-    let l = parseLocation(alarm.location);
-    let startLine = Math.max(0, l.startLine - 1);
-    let startChar = Math.max(0, l.startCh - 1);
-    let endLine = l.endLine != null ? Math.max(0, l.endLine - 1) : startLine;
-    let endChar = l.endCh != null ? Math.max(0, l.endCh - 1) : startChar;
+    const message = alarm.message;
+    const l = parseLocation(alarm.location);
+    const startLine = Math.max(0, l.startLine - 1);
+    const startChar = Math.max(0, l.startCh - 1);
+    const endLine = l.endLine != null ? Math.max(0, l.endLine - 1) : startLine;
+    const endChar = l.endCh != null ? Math.max(0, l.endCh - 1) : startChar;
     return {
-        /*message: `${message} (${alarm.name})`,*/
         message: `${message}`, // VS Code displays 'code' like '<message> [<code>]'
         severity: convertSeverity(alarm.impact),
         source: 'deepscan',
@@ -326,9 +324,9 @@ function makeDiagnostic(alarm): Diagnostic {
 }
 
 function parseLocation(location) {
-    var startLocation = location.split('-')[0], endLocation = location.split('-')[1];
-    var startLine = Number(startLocation.split(':')[0]), startCh = Number(startLocation.split(':')[1]);
-    var endLine = Number(endLocation.split(':')[0]), endCh = Number(endLocation.split(':')[1]);
+    const startLocation = location.split('-')[0], endLocation = location.split('-')[1];
+    const startLine = Number(startLocation.split(':')[0]), startCh = Number(startLocation.split(':')[1]);
+    const endLine = Number(endLocation.split(':')[0]), endCh = Number(endLocation.split(':')[1]);
     return {
         startLine: startLine,
         startCh: startCh,
