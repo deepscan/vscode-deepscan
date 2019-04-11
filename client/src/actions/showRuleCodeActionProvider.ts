@@ -15,6 +15,8 @@ export default class showRuleCodeActionProvider extends deepscanCodeActionProvid
     private command: vscode.Disposable;
     private provider: TextDocumentContentProvider;
 
+    private _panel: vscode.WebviewPanel;
+
     public constructor(context: vscode.ExtensionContext, {rules, style}) {
         super('show-rule');
 
@@ -39,13 +41,25 @@ export default class showRuleCodeActionProvider extends deepscanCodeActionProvid
     }
 
     public execute(document, ruleKey: string) {
-        let uri = this.getUri();
+        const uri = this.getUri();
+        const column = vscode.ViewColumn.Two;
+        const options: vscode.WebviewOptions & vscode.WebviewPanelOptions = {
+            enableScripts: true,
+            enableCommandUris: true,
+            enableFindWidget: false,
+            retainContextWhenHidden: true
+        };
+        if (!this._panel) {
+            const viewType = 'deepscan.show-rule';
+            const tabTitle = 'DeepScan Rule';
+            this._panel = vscode.window.createWebviewPanel(viewType, tabTitle, { viewColumn: column, preserveFocus: true }, options);
+            this._panel.onDidDispose(() => {
+                this._panel = null;
+            });
+        }
         this.provider.set(ruleKey);
-        vscode.commands.executeCommand('vscode.previewHtml', uri, vscode.ViewColumn.Two, 'DeepScan Rule').then((success) => {
-            this.provider.update(uri);
-        }, (reason) => {
-            vscode.window.showErrorMessage(reason);
-        });
+        this._panel.webview.html = this.provider.provideTextDocumentContent(uri);
+        this._panel.reveal();
     }
 
     public dispose() {

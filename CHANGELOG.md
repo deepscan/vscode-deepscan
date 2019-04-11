@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.8.2
+
+- Fix **Show rule** action to work. 'vscode.previewHtml' command was removed so replace to Webview.
+
 ## 1.8.1
 
 - Update rule definition (1.23.0)
