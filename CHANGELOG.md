@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.8.3
+
+- Update rule definition (1.24.0)
+- For rules overlapping with ESLint, DeepScan now recognizes ESLint inline disable comments and filters out alarms when the corresponding ESLint alarm is disabled.
+
 ## 1.8.2
 
 - Fix **Show rule** action to work. 'vscode.previewHtml' command was removed so replace to Webview.
