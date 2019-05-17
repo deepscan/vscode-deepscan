@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.8.4
+
+- Update rule definition (1.25.0)
+- Fix: Change `deepscan-enable-line` directive to `deepscan-disable-next-line`
+- Update packages for potential security vulnerabilities: `lodash`
+
 ## 1.8.3
 
 - Update rule definition (1.24.0)

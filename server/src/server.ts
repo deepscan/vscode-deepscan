@@ -201,7 +201,7 @@ connection.onCompletion((_textDocumentPosition: TextDocumentPositionParams): Com
         kind: CompletionItemKind.Text,
         data: 3
     }, {
-        label: 'deepscan-enable-line',
+        label: 'deepscan-disable-next-line',
         kind: CompletionItemKind.Text,
         data: 4
     }];
