@@ -18,7 +18,7 @@
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
-        "lodash": "^4.17.11",
+        "lodash": "^4.17.13",
         "showdown": "^1.7.1",
         "showdown-htmlescape": "^0.1.9",
         "vscode-languageclient": "^5.0.1"
