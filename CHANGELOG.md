@@ -1,9 +1,14 @@
 # Change Log
 
+## 1.8.6
+
+- Update rule definition (1.27.0)
+- For the analysis improvements, see [this updates](https://deepscan.io/docs/updates/2019-07/)
+
 ## 1.8.5
 
 - Update rule definition (1.26.0)
-- For the analysis improvements, see this [updates](https://deepscan.io/docs/updates/2019-06/)
+- For the analysis improvements, see [this updates](https://deepscan.io/docs/updates/2019-06/)
 
 ## 1.8.4
 
@@ -14,7 +19,7 @@
 ## 1.8.3
 
 - Update rule definition (1.24.0)
-- For rules overlapping with ESLint, DeepScan now recognizes ESLint inline disable comments and filters out alarms when the corresponding ESLint alarm is disabled.
+- For rules overlapping with ESLint, DeepScan now recognizes ESLint inline disable comments and filters out alarms when the corresponding ESLint alarm is disabled
 
 ## 1.8.2
 
