@@ -2,7 +2,7 @@
     "name": "vscode-deepscan",
     "displayName": "DeepScan",
     "description": "Detect bugs and quality issues in JavaScript, TypeScript, React and Vue.js more precisely",
-    "version": "1.8.6",
+    "version": "1.8.7",
     "author": "DeepScan",
     "publisher": "DeepScan",
     "license": "MIT",
@@ -93,7 +93,7 @@
                 "deepscan.serverEmbedded.enable": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Controls whether DeepScan inspection should be executed via the the embedded server rather than DeepScan server. (Restart required)"
+                    "description": "Controls whether DeepScan inspection should be executed via the embedded server rather than DeepScan server. (Restart required)"
                 },
                 "deepscan.serverEmbedded.serverJar": {
                     "type": "string",
