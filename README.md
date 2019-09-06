@@ -76,8 +76,21 @@ Read more about it [here](https://deepscan.io/docs/get-started/disabling-rules/)
 
 In the embedded mode, this extension contributes the following commands to the Command palette.
 
-- `Inspect Project`: inspect the current project.
-- `Clear Project Problems`: clear inspected problems.
+- **Inspect Project**: inspect the current project.
+- **Clear Project Problems**: clear inspected problems.
+
+### ESLint Analysis
+Run ESLint. You can see the ESLint alarms with DeepScan's.
+
+[eslint package](https://www.npmjs.com/package/eslint) is required in the local or global. Note that `NODE_PATH` environment variable is necessary to load the `eslint` module installed in global.
+
+It directly uses the package so your custom configurations and plugins are applied as is.
+
+- `deepscan.serverEmbedded.eslint.enable`: enable/disable ESLint analysis.
+- `deepscan.serverEmbedded.eslint.merge`: option for how identical issues of DeepScan and ESLint are merged. (defaults to `deepscan`)
+  * `deepscan`: show only DeepScan issues.
+  * `eslint`: show only ESLint issues.
+  * `both`: show all issues as is.
 
 ## Using behind a proxy
 

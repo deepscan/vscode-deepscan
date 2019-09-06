@@ -2,7 +2,7 @@
     "name": "vscode-deepscan",
     "displayName": "DeepScan",
     "description": "Detect bugs and quality issues in JavaScript, TypeScript, React and Vue.js more precisely",
-    "version": "1.8.7",
+    "version": "1.9.0",
     "author": "DeepScan",
     "publisher": "DeepScan",
     "license": "MIT",
@@ -102,6 +102,16 @@
                 "deepscan.serverEmbedded.license": {
                     "type": "string",
                     "description": "Configures the license for the embedded analysis."
+                },
+                "deepscan.serverEmbedded.eslint.enable": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Controls whether ESLint analysis should be executed."
+                },
+                "deepscan.serverEmbedded.eslint.merge": {
+                    "type": "string",
+                    "default": "deepscan",
+                    "description": "Option for how identical issues of DeepScan and ESLint are merged. ('deepscan' | 'eslint' | 'both')"
                 }
             }
         },

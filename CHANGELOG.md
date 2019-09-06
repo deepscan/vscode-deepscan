@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.9.0
+
+- Update rule definition (1.29.0)
+- For the analysis improvements, see [this updates](https://deepscan.io/docs/updates/2019-09/)
+- Support ESLint analysis in the embedded mode
+
 ## 1.8.7
 
 - Update rule definition (1.28.0)
