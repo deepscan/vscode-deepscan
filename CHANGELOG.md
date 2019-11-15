@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.9.2
+
+- Update rule definition (1.31.0)
+- For the analysis improvements, see [this updates](https://deepscan.io/docs/updates/2019-11/)
+- Update packages for potential security vulnerabilities: `lodash`
+
 ## 1.9.1
 
 - Update rule definition (1.30.0)

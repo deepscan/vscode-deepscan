@@ -6,11 +6,16 @@ VS Code extension to detect bugs and quality issues in JavaScript, TypeScript, R
 
 DeepScan is a cutting-edge JavaScript code inspection tool that helps you to find bugs and quality issues more precisely by data-flow analysis. You can also use it for React and Vue.js because DeepScan delivers [React specialized rules](https://deepscan.io/docs/rules/#react) and [Vue.js specialized rules](https://deepscan.io/docs/rules/#vue).
 
-> **Note:**
+**Note 1:** File Transfer
+>
 > To use this extension, you should confirm that your code is transferred to the DeepScan server for inspection when you save your changes.
 > You can confirm it by pressing the Confirm button that appears when restarting VS Code after the installation.
 >
 > Note that your code is completely deleted from the server right after the inspection.
+
+**Note 2:** Analysis Result
+>
+> The analysis is only per the transferred file. Some rules requiring inter-module information, such as [REACT_MISMATCHED_TYPE_OF_PROP](https://deepscan.io/docs/rules/react-mismatched-type-of-prop), does not apply in this plugin. To fully make use of DeepScan, please check out [Embedded Mode](#embedded-mode).
 
 ![Navigation](client/resources/preview.png)
 
@@ -65,8 +70,7 @@ Read more about it [here](https://deepscan.io/docs/get-started/disabling-rules/)
 
 ## Embedded Mode
 
-> **Note:**
-> This is a premium feature.
+**Note:** This is a premium feature.
 >
 > DeepScan supports an embedded mode, which works standalone without DeepScan server. It works with the local language server so you can:
 > * never worry about transferring the code outside.
