@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.9.3
+
+- Update rule definition (1.32.0)
+- For the analysis improvements, see [this updates](https://deepscan.io/docs/updates/2019-12/)
+
 ## 1.9.2
 
 - Update rule definition (1.31.0)
