@@ -1,8 +1,9 @@
 # VS Code DeepScan extension
 
+[![VS Code Marketplace](http://vsmarketplacebadge.apphb.com/version/DeepScan.vscode-deepscan.svg)](https://marketplace.visualstudio.com/items/DeepScan.vscode-deepscan)
 [![DeepScan Grade](https://deepscan.io/api/projects/1808/branches/7873/badge/grade.png)](https://deepscan.io/dashboard/#view=project&pid=1808&bid=7873)
 
-VS Code extension to detect bugs and quality issues in JavaScript, TypeScript, React and Vue.js. Works with [DeepScan](https://deepscan.io).
+[VS Code extension](https://marketplace.visualstudio.com/items/DeepScan.vscode-deepscan) to detect bugs and quality issues in JavaScript, TypeScript, React and Vue.js. Works with [DeepScan](https://deepscan.io).
 
 DeepScan is a cutting-edge JavaScript code inspection tool that helps you to find bugs and quality issues more precisely by data-flow analysis. You can also use it for React and Vue.js because DeepScan delivers [React specialized rules](https://deepscan.io/docs/rules/#react) and [Vue.js specialized rules](https://deepscan.io/docs/rules/#vue).
 
@@ -31,7 +32,7 @@ This extension contributes the following variables to the settings:
 
 - `deepscan.enable`: enable/disable DeepScan. Disabled by default. Enabled on per workspace when you confirm.
 - `deepscan.server`: set an url of DeepScan server. "https://deepscan.io" by default.
-- `deepscan.proxy`: set an url of proxy server. When you are behind a proxy.
+- `deepscan.proxy`: set an url of proxy server. When you are [behind a proxy](#using-behind-a-proxy).
 - `deepscan.ignoreRules`: set an array of rules to exclude.
   An example to exclude 'UNUSED_DECL' rule is:
 ```json
