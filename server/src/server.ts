@@ -86,8 +86,6 @@ let ignoreRules: string[] = null;
 let DEFAULT_FILE_SUFFIXES: string[] = null;
 let fileSuffixes: string[] = null;
 
-let httpProxy = _.pick(process.env, ['http_proxy']).http_proxy;
-
 function supportsLanguage(document: TextDocument): boolean {
     return _.includes(supportedFileSuffixes, path.extname(document.uri));
 }
@@ -263,7 +261,7 @@ function inspect(identifier: VersionedTextDocumentIdentifier) {
     let filename = `demo${fileSuffix}`;
 
     let req = request.post({
-        proxy: proxyServer || httpProxy,
+        proxy: proxyServer,
         url: URL,
         headers : {
             'user-agent': userAgent,

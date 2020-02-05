@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.9.5
+
+- Fix: `no_proxy` environment variable does not apply
+
 ## 1.9.4
 
 - Update rule definition (1.33.0)

@@ -98,8 +98,9 @@ It directly uses the package so your custom configurations and plugins are appli
 
 ## Using behind a proxy
 
-This extension requires a connection with the DeepScan server for inspection. This connection cannot be established when you are behind a proxy.
+To do an inspection, this extension requires a connection with the DeepScan server. But this connection cannot be established when you are behind a proxy.
 
-For this case, the extension will try to set its proxy via your `http_proxy` environment variable.
+For this case, you can try one of the following:
 
-If you don't have the environment variable, try to set `deepscan.proxy` option to the url of proxy server.
+* Set `http_proxy` environment variable: `http_proxy` [is respected](https://www.npmjs.com/package/request#controlling-proxy-behaviour-using-environment-variables), if any.
+* Set `deepscan.proxy` option: When you do not have/want a system-wide `http_proxy` environment variable, you can set the proxy server's URL in the `deepscan.proxy` option.
