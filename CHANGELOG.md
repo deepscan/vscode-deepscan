@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.9.6
+
+- Update rule definition (1.34.0)
+- For the analysis improvements, see [this updates](https://deepscan.io/docs/updates/2020-02/)
+
 ## 1.9.5
 
 - Fix: `no_proxy` environment variable does not apply
