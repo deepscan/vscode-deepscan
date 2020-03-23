@@ -42,10 +42,7 @@ const exitCalled = new NotificationType<[number, string], void>('deepscan/exitCa
 let client: LanguageClient = null;
 
 export function activate(context: vscode.ExtensionContext) {
-    const workspaceRootPath = vscode.workspace.rootPath;
-    if (!workspaceRootPath) {
-        return;
-    }
+    console.log(`Activating ${packageJSON.name}... (workspace: ${vscode.workspace.rootPath})`);
 
     activateClient(context);
     console.log(`Congratulations, your extension "${packageJSON.name} ${packageJSON.version}" is now active!`);
@@ -249,10 +246,12 @@ async function activateClient(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         registerEmbeddedCommand('deepscan.inspectProject', (command) => {
             const diagnostics = vscode.languages.getDiagnostics();
-            client.info("Starting to analyze a project: " + vscode.workspace.rootPath);
             const successCallback = () => {
-                client.info("Analysis completed");
             };
+
+            // Hide decorations early when executing "Inspect Project"
+            vscode.window.visibleTextEditors.forEach((editor) => activeDecorations.clearDecorations(editor.document.uri.toString()));
+
             sendRequest(client, command, successCallback, [diagnostics]);
         }),
         registerEmbeddedCommand('deepscan.clearProject', (command) => {
@@ -270,9 +269,13 @@ async function activateClient(context: vscode.ExtensionContext) {
 
 function registerEmbeddedCommand(command: string, handler) {
     const embeddedCommand = vscode.commands.registerCommand(command, () => {
+        if (!vscode.workspace.rootPath) {
+            warn(client, 'Can only be enabled if VS Code is opened on a workspace folder.', true);
+            return;
+        }
+
         if (!isEmbedded()) {
-            const message = `This command ${command} is supported only in the embedded mode.`;
-            warn(client, message, true);
+            warn(client, 'Supported only in the embedded mode.', true);
             return;
         }
 
@@ -295,6 +298,12 @@ async function checkSetting() {
 
     const shouldIgnore = config.get('ignoreConfirmWarning') === true;
     if (shouldIgnore) {
+        return;
+    }
+
+    const isOpenedOnWorkspace = !!vscode.workspace.rootPath;
+    if (!isOpenedOnWorkspace) {
+        // Don't want to force update in the user settings.
         return;
     }
 

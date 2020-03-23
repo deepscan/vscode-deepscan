@@ -14,7 +14,7 @@ DeepScan is a cutting-edge JavaScript code inspection tool that helps you to fin
 >
 > Note that your code is completely deleted from the server right after the inspection.
 
-**Note 2:** Analysis Result
+**Note 2:** Limitation of Analysis
 >
 > The analysis is only per the transferred file. Some rules requiring inter-module information, such as [REACT_MISMATCHED_TYPE_OF_PROP](https://deepscan.io/docs/rules/react-mismatched-type-of-prop), does not apply in this plugin. To fully make use of DeepScan, please check out [Embedded Mode](#embedded-mode).
 

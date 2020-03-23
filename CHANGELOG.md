@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.9.7
+
+- Continue to activate although if VS Code is not opened on a workspace folder
+- Clear decorations before executing 'Inspect Project' command
+
 ## 1.9.6
 
 - Update rule definition (1.34.0)
