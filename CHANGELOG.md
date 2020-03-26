@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.9.8
+
+- Support the DeepScan configuration file
+
 ## 1.9.7
 
 - Continue to activate although if VS Code is not opened on a workspace folder

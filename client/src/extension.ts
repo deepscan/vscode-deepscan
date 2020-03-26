@@ -240,6 +240,7 @@ async function activateClient(context: vscode.ExtensionContext) {
     // Register code actions
     const showRuleAction = new showRuleCodeActionProvider(context, {rules, style});
     context.subscriptions.push(vscode.languages.registerCodeActionsProvider(clientOptions.documentSelector, showRuleAction));
+
     const disableRulesAction = new disableRuleCodeActionProvider(context);
     context.subscriptions.push(vscode.languages.registerCodeActionsProvider(staticDocumentsForDisablingRules, disableRulesAction));
 

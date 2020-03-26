@@ -4,6 +4,9 @@
  * ------------------------------------------------------------------------------------------ */
 'use strict';
 
+import * as fs from 'fs';
+import * as path from 'path';
+
 import * as vscode from 'vscode';
 import deepscanCodeActionProvider from './deepscanCodeActionProvider';
 
@@ -24,6 +27,26 @@ export default class disableRulesCodeActionProvider extends deepscanCodeActionPr
 
     public codeActions(document: vscode.TextDocument, range: vscode.Range, diagnostics: vscode.Diagnostic[], token: vscode.CancellationToken): vscode.Command[] {
         let commands: vscode.Command[] = [];
+
+        if (this.isEmbedded()) {
+            try {
+                let deepscanConfiguration = null;
+                const rcFilePath = path.join(vscode.workspace.rootPath, '.deepscanrc.json');
+                if (fs.existsSync(rcFilePath)) {
+                    deepscanConfiguration = JSON.parse(fs.readFileSync(rcFilePath).toString());
+                }
+                let showSuppressionMenu = true;
+                if (deepscanConfiguration && deepscanConfiguration.ideOptions && deepscanConfiguration.ideOptions.showSuppressionMenu != null) {
+                    showSuppressionMenu = deepscanConfiguration.ideOptions.showSuppressionMenu;
+                }
+                if (!showSuppressionMenu) {
+                    return commands;
+                }
+            } catch (e) {
+                console.warn(`Can't read a DeepScan configuration file: ${e.message}`);
+            }
+        }
+
         if (diagnostics.length > 0) {
             let ruleKeys = diagnostics.map(diagnostic => diagnostic.code);
             commands.push({
@@ -54,6 +77,14 @@ export default class disableRulesCodeActionProvider extends deepscanCodeActionPr
 
     public dispose() {
         this.command.dispose();
+    }
+
+    getDeepScanConfiguration(): vscode.WorkspaceConfiguration {
+        return vscode.workspace.getConfiguration('deepscan');
+    }
+
+    isEmbedded(): boolean {
+        return this.getDeepScanConfiguration().get("serverEmbedded.enable");
     }
 }
 
