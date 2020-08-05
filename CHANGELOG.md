@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.10.0
+
+ - Respect `NODE_EXTRA_CA_CERTS` to support some corporate proxy
+ - Replace `request` package with `axios`
+
 ## 1.9.9
 
 - Update rule definition (1.39.0)
