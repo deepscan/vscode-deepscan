@@ -15,8 +15,9 @@
         "compile": "installServerIntoExtension ../client ./package.json ./tsconfig.json && tsc -p ./"
     },
     "dependencies": {
+        "axios": "^0.19.2",
+        "form-data": "^3.0.0",
         "lodash": "^4.17.19",
-        "request": "^2.79.0",
         "vscode-languageserver": "^5.0.3"
     }
 }

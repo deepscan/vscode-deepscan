@@ -139,7 +139,8 @@
         "install-server": "npm run compile:client && npm run compile:server-to-client"
     },
     "devDependencies": {
-        "typescript": "^2.9.1",
-        "@types/node": "^8.0.0"
-    }
+        "@types/node": "^8.10.62",
+        "typescript": "^3.9.7"
+    },
+    "dependencies": {}
 }

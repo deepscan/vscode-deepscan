@@ -13,9 +13,11 @@ import {
     TextDocumentPositionParams, CompletionItem, CompletionItemKind,
     IPCMessageReader, IPCMessageWriter
 } from 'vscode-languageserver';
+import { URL } from 'url';
 
 var path = require('path');
-var request = require('request').defaults({jar: true});
+const axios = require('axios').default;
+const FormData = require('form-data');
 
 enum Status {
     none = 0,
@@ -229,7 +231,24 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
 
 connection.listen();
 
-function inspect(identifier: VersionedTextDocumentIdentifier) {
+function parseProxy(proxyUrl) {
+    if (!proxyUrl) return null;
+    const url = new URL(proxyUrl);
+    const proxySetting = {
+        host: url.hostname,
+        port: url.port,
+        auth: null
+    };
+    if (url.username || url.password) {
+        proxySetting.auth = {
+            username: url.username,
+            password: url.password
+        }
+    }
+    return proxySetting;
+}
+
+async function inspect(identifier: VersionedTextDocumentIdentifier) {
     let uri = identifier.uri;
     let textDocument = documents.get(uri);
     let docContent = textDocument.getText();
@@ -260,36 +279,45 @@ function inspect(identifier: VersionedTextDocumentIdentifier) {
     }
     let filename = `demo${fileSuffix}`;
 
-    let req = request.post({
-        proxy: proxyServer,
-        url: URL,
-        headers : {
-            'user-agent': userAgent,
-        }
-    }, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-            let diagnostics: Diagnostic[] = getResult(JSON.parse(body).data);
+    try {
+        const form = new FormData();
+        form.append("file", docContent, {
+            filename,
+            contentType: "text/plain",
+        });
+        const response = await axios.post(URL, form, {
+            proxy: parseProxy(proxyServer),
+            headers: {
+                "user-agent": userAgent,
+                ...form.getHeaders(),
+            },
+        });
+        let diagnostics: Diagnostic[] = getResult(response.data.data);
 
-            if (Array.isArray(settings.deepscan.ignoreRules)) {
-                diagnostics = _.filter(diagnostics, (diagnostic) => !_.includes(settings.deepscan.ignoreRules, diagnostic.code));
-            }
-
-            // Publish the diagnostics
-            sendDiagnostics(diagnostics);
-            connection.sendNotification(StatusNotification.type, { state: diagnostics.length > 0 ? Status.warn : Status.ok, uri });
-        } else {
-            const message = error ? error.message : parseSilently(body);
-            connection.console.error(`Failed to inspect: ${message}`);
-            // Clear problems
-            sendDiagnostics([]);
-            connection.sendNotification(StatusNotification.type, { state: Status.fail, message });
+        if (Array.isArray(settings.deepscan.ignoreRules)) {
+            diagnostics = diagnostics.filter(diagnostic =>
+                !settings.deepscan.ignoreRules.includes(diagnostic.code as string)
+            );
         }
-    });
-    var form = req.form();
-    form.append('file', docContent, {
-        filename,
-        contentType: 'text/plain'
-    });
+
+        // Publish the diagnostics
+        sendDiagnostics(diagnostics);
+        connection.sendNotification(StatusNotification.type, {
+            state: diagnostics.length > 0 ? Status.warn : Status.ok,
+            message: null,
+            uri,
+        });
+    } catch (err) {
+        const message = err?.response?.data?.data?.reason || err.message;
+        connection.console.error(`Failed to inspect: ${message}`);
+        // Clear problems
+        sendDiagnostics([]);
+        connection.sendNotification(StatusNotification.type, {
+            state: Status.fail,
+            message,
+            uri: null,
+        });
+    }
 }
 
 function getResult(result): Diagnostic[] {
@@ -339,13 +367,5 @@ function detachSlash(path) {
         return path.substr(0, len - 1);
     } else {
         return path;
-    }
-}
-
-function parseSilently(body) {
-    try {
-        return JSON.parse(body).reason;
-    } catch (e) {
-        return null;
     }
 }
