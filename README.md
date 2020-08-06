@@ -103,5 +103,5 @@ To do an inspection, this extension requires a connection with the DeepScan serv
 
 For this case, you can try one of the following:
 
-* Set `http_proxy` environment variable: `http_proxy` [is respected](https://www.npmjs.com/package/request#controlling-proxy-behaviour-using-environment-variables), if any.
+* Set `http_proxy` environment variable: `http_proxy` [is respected](https://www.npmjs.com/package/axios#request-config), if any.
 * Set `deepscan.proxy` option: When you do not have/want a system-wide `http_proxy` environment variable, you can set the proxy server's URL in the `deepscan.proxy` option.
