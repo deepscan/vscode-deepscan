@@ -136,11 +136,13 @@
         "watch:server": "tsc -w -p ./server/tsconfig.json",
         "compile": "npm run compile:client && npm run compile:server",
         "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
-        "install-server": "npm run compile:client && npm run compile:server-to-client"
+        "install-server": "npm run compile:client && npm run compile:server-to-client",
+        "deploy": "vsce publish"
     },
     "devDependencies": {
         "@types/node": "^8.10.62",
-        "typescript": "^3.9.7"
+        "typescript": "^3.9.7",
+        "vsce": "^1.77.0"
     },
     "dependencies": {}
 }
