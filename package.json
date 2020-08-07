@@ -2,7 +2,7 @@
     "name": "vscode-deepscan",
     "displayName": "DeepScan",
     "description": "Detect bugs and quality issues in JavaScript, TypeScript, React and Vue.js more precisely",
-    "version": "1.10.0",
+    "version": "1.10.1",
     "author": "DeepScan",
     "publisher": "DeepScan",
     "license": "MIT",
@@ -129,7 +129,7 @@
         ]
     },
     "scripts": {
-        "vscode:prepublish": "cd client && npm run update-vscode && cd .. && npm run compile",
+        "vscode:prepublish": "npm run compile",
         "compile:client": "tsc -p ./client/tsconfig.json",
         "compile:server": "tsc -p ./server/tsconfig.json",
         "watch:client": "tsc -w -p ./client/tsconfig.json",
@@ -137,7 +137,8 @@
         "compile": "npm run compile:client && npm run compile:server",
         "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
         "install-server": "npm run compile:client && npm run compile:server-to-client",
-        "deploy": "vsce publish"
+        "deploy": "vsce publish",
+        "package": "vsce package"
     },
     "devDependencies": {
         "@types/node": "^8.10.62",

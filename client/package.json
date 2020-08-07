@@ -11,19 +11,17 @@
         "url": "https://github.com/deepscan/vscode-deepscan.git"
     },
     "engines": {
-        "vscode": "^1.25.0"
+        "vscode": "^1.25.1"
     },
-    "scripts": {
-        "update-vscode": "node ./node_modules/vscode/bin/install",
-        "postinstall": "node ./node_modules/vscode/bin/install"
-    },
+    "scripts": {},
     "dependencies": {
+        "@types/vscode": "^1.25.0",
         "lodash": "^4.17.19",
-        "showdown": "^1.7.1",
+        "showdown": "^1.9.1",
         "showdown-htmlescape": "^0.1.9",
         "vscode-languageclient": "^5.0.1"
     },
     "devDependencies": {
-        "vscode": "^1.0.0"
+        "vscode-test": "^1.4.0"
     }
 }

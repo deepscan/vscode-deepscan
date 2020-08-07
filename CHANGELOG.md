@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.10.1
+
+ - Replace `vscode` dependency with `vscode-test` and `@types/vscode`
+ - Update packages for potential security vulnerabilities: `showdown`
+
 ## 1.10.0
 
  - Respect `NODE_EXTRA_CA_CERTS` to support some corporate proxy
