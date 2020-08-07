@@ -1,7 +1,9 @@
 name: Publish Extension
 
 on:
+  # Run manually
   workflow_dispatch:
+  # Or run when release(tag) is created. Release tag is created by adding release in Releases page. :)
   release:
     types:
     - created
