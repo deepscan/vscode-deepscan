@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.10.2
+
+- Update rule definition (1.40.0)
+- For the analysis improvements, see [this updates](https://deepscan.io/docs/updates/2020-08/)
+
 ## 1.10.1
 
  - Replace `vscode` dependency with `vscode-test` and `@types/vscode`
