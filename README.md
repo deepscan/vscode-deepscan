@@ -34,7 +34,7 @@ This extension contributes the following variables to the settings:
 - `deepscan.server`: set an url of DeepScan server. "https://deepscan.io" by default.
 - `deepscan.proxy`: set an url of proxy server. When you are [behind a proxy](#using-behind-a-proxy).
 - `deepscan.ignoreRules`: set an array of rules to exclude.
-  An example to exclude 'UNUSED_DECL' rule is:
+  An example to exclude 'UNUSED_DECL' rule:
 ```json
 {
     "deepscan.ignoreRules": [
@@ -42,8 +42,17 @@ This extension contributes the following variables to the settings:
     ]
 }
 ```
+- `deepscan.ignorePatterns`: set an array of file patterns to exclude.
+  An example to exclude a file and `lib` directory:
+```json
+{
+    "deepscan.ignorePatterns": [
+        "App.vue", "lib/"
+    ]
+}
+```
 - `deepscan.fileSuffixes`: set an array of additional suffixes for files to analyze. (Needs restart to take affect)
-  An example to analyze `*.es` file as a JavaScript file is:
+  An example to analyze `*.es` file as a JavaScript file:
 ```json
 {
     "deepscan.fileSuffixes": [

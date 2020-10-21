@@ -5,6 +5,7 @@
 'use strict';
 
 import * as _ from 'lodash';
+import ignore from 'ignore';
 
 import {
     createConnection, IConnection,
@@ -45,6 +46,7 @@ interface Settings {
         server?: string;
         proxy?: string;
         ignoreRules?: (string)[];
+        ignorePatterns?: (string)[];
         fileSuffixes?: (string)[];
     }
 }
@@ -85,6 +87,7 @@ let deepscanServer: string = undefined;
 let proxyServer: string = undefined;
 let userAgent: string = undefined;
 let ignoreRules: string[] = null;
+let ignorePatterns: string[] = null;
 let DEFAULT_FILE_SUFFIXES: string[] = null;
 let fileSuffixes: string[] = null;
 
@@ -172,6 +175,11 @@ connection.onDidChangeConfiguration((params) => {
 
     if (!_.isEqual(ignoreRules, settings.deepscan.ignoreRules)) {
         ignoreRules = settings.deepscan.ignoreRules;
+        changed = true;
+    }
+
+    if (!_.isEqual(ignorePatterns, settings.deepscan.ignorePatterns)) {
+        ignorePatterns = settings.deepscan.ignorePatterns;
         changed = true;
     }
 
@@ -263,6 +271,14 @@ async function inspect(identifier: VersionedTextDocumentIdentifier) {
     if (docContent.trim() === '') {
         sendDiagnostics([]);
         return;
+    }
+
+    if (Array.isArray(settings.deepscan.ignorePatterns)) {
+        const ig = ignore().add(settings.deepscan.ignorePatterns);
+        if (ig.ignores(uri)) {
+            sendDiagnostics([]);
+            return;
+        }
     }
 
     if (textDocument.lineCount >= MAX_LINES) {
