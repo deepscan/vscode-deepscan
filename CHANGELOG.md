@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.11.1
+
+- Update rule definition (1.42.0)
+- For the analysis improvements, see [this updates](https://deepscan.io/docs/updates/2020-10/)
+
 ## 1.11.0
 
 - Support `ignorePatterns` option [to ignore certain files](https://github.com/deepscan/vscode-deepscan/issues/28)
