@@ -1,5 +1,12 @@
 # Change Log
 
+
+## 1.46.0
+
+- Update rule definition (1.46.0)
+- For the analysis improvements, see [this updates](https://deepscan.io/docs/updates/2021-03/)
+- Match version with DeepScan engine
+
 ## 1.11.4
 
 - Update rule definition (1.45.0)
