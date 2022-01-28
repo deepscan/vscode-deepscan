@@ -22,7 +22,7 @@ jobs:
     - name: Install Node.js
       uses: actions/setup-node@v1
       with:
-        node-version: 12.x
+        node-version: 14.x
     - run: npm install
     - name: Publish
       run: npm run deploy
