@@ -2,7 +2,7 @@
     "name": "vscode-deepscan",
     "displayName": "DeepScan",
     "description": "Detect bugs and quality issues in JavaScript, TypeScript, React and Vue.js more precisely",
-    "version": "1.52.0",
+    "version": "1.53.0",
     "author": "DeepScan",
     "publisher": "DeepScan",
     "license": "MIT",
