@@ -1,6 +1,6 @@
 # VS Code DeepScan extension
 
-[![VS Code Marketplace](https://vsmarketplacebadge.apphb.com/version/DeepScan.vscode-deepscan.svg)](https://marketplace.visualstudio.com/items/DeepScan.vscode-deepscan)
+[![VS Code Marketplace](https://vsmarketplacebadges.dev/version/DeepScan.vscode-deepscan.svg)](https://marketplace.visualstudio.com/items/DeepScan.vscode-deepscan)
 [![DeepScan Grade](https://deepscan.io/api/projects/1808/branches/7873/badge/grade.png)](https://deepscan.io/dashboard/#view=project&pid=1808&bid=7873)
 
 [VS Code extension](https://marketplace.visualstudio.com/items/DeepScan.vscode-deepscan) to detect bugs and quality issues in JavaScript, TypeScript, React and Vue.js. Works with [DeepScan](https://deepscan.io).

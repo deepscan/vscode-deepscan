@@ -2,7 +2,7 @@
     "name": "vscode-deepscan",
     "displayName": "DeepScan",
     "description": "Detect bugs and quality issues in JavaScript, TypeScript, React and Vue.js more precisely",
-    "version": "1.55.0",
+    "version": "1.55.1",
     "author": "DeepScan",
     "publisher": "DeepScan",
     "license": "MIT",
@@ -142,8 +142,8 @@
     },
     "devDependencies": {
         "@types/node": "^8.10.62",
-        "typescript": "^4.3.2",
-        "vsce": "^2.6.5"
+        "@vscode/vsce": "^2.16.0",
+        "typescript": "^4.3.2"
     },
     "dependencies": {}
 }
