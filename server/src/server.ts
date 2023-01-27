@@ -262,7 +262,8 @@ async function inspect(identifier: VersionedTextDocumentIdentifier) {
     let docContent = textDocument.getText();
 
     const URL = `${deepscanServer}/api/demo`;
-    const MAX_LINES = 30000;
+    const MAX_LINES = 10000;
+    const MAX_CHARS = 500000;
 
     function sendDiagnostics(diagnostics) {
         connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
@@ -281,8 +282,14 @@ async function inspect(identifier: VersionedTextDocumentIdentifier) {
         }
     }
 
-    if (textDocument.lineCount >= MAX_LINES) {
-        connection.console.info(`Sorry! We do not support above ${MAX_LINES} lines.`);
+    if (textDocument.lineCount > MAX_LINES) {
+        connection.console.info(`Sorry! We do not support files exceeding ${MAX_LINES} lines.`);
+        sendDiagnostics([]);
+        return;
+    }
+
+    if (docContent.length > MAX_CHARS) {
+        connection.console.info(`Sorry! We do not support files exceeding ${MAX_CHARS} characters.`);
         sendDiagnostics([]);
         return;
     }
