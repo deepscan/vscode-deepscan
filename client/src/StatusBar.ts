@@ -36,7 +36,7 @@ export class StatusBar {
         return this.statusBarItem.tooltip;
     }
 
-    setTooltip(text: string) {
+    setTooltip(text: string | vscode.MarkdownString) {
         this.statusBarItem.tooltip = text;
     }
 

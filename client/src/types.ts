@@ -8,6 +8,7 @@ import { NotificationType } from 'vscode-languageclient';
 
 export namespace CommandIds {
     export const showOutput: string = 'deepscan.showOutputView';
+    export const updateToken: string = 'deepscan.updateToken';
 }
 
 export enum Status {
@@ -15,6 +16,13 @@ export enum Status {
     ok = 1, // No alarm
     warn = 2, // Any alarm regardless of impact
     fail = 3 // Analysis failed
+}
+
+export enum TokenStatus {
+    valid = 4,
+    empty = 5,
+    invalid = 6,
+    expired = 7
 }
 
 // "severity" of client.diagnostics. Seems not to comply with the DiagnosticSeverity of language-server.
@@ -34,7 +42,7 @@ export interface Suggestion {
 }
 
 export interface StatusParams {
-    state: Status,
+    state: Status | TokenStatus,
     message: string,
     uri: string,
     suggestions: Suggestion[]

@@ -12,11 +12,11 @@ import {
     NotificationType, Diagnostic, DiagnosticSeverity,
     TextDocuments, TextDocument, TextDocumentSyncKind, VersionedTextDocumentIdentifier,
     TextDocumentPositionParams, CompletionItem, CompletionItemKind,
-    IPCMessageReader, IPCMessageWriter
+    IPCMessageReader, IPCMessageWriter, ExecuteCommandParams
 } from 'vscode-languageserver';
 import { URL } from 'url';
 
-var path = require('path');
+const path = require('path');
 const axios = require('axios').default;
 const FormData = require('form-data');
 
@@ -27,8 +27,15 @@ enum Status {
     fail = 3
 }
 
+export enum TokenStatus {
+    valid = 4,
+    empty = 5,
+    invalid = 6,
+    expired = 7
+}
+
 interface StatusParams {
-    state: Status,
+    state: Status | TokenStatus,
     message: string,
     uri: string
 }
@@ -83,6 +90,7 @@ let supportedFileSuffixes: string[] = null;
 
 // options
 let enable: boolean = undefined;
+let token:string = undefined;
 let deepscanServer: string = undefined;
 let proxyServer: string = undefined;
 let userAgent: string = undefined;
@@ -129,6 +137,7 @@ function initializeSupportedFileSuffixes() {
 connection.onInitialize((params) => {
     let initOptions: {
         server: string;
+        token: string;
         proxy: string;
         DEFAULT_FILE_SUFFIXES: string[];
         fileSuffixes: string[];
@@ -136,6 +145,7 @@ connection.onInitialize((params) => {
     } = params.initializationOptions;
     deepscanServer = getServerUrl(initOptions.server);
     proxyServer = initOptions.proxy;
+    token = initOptions.token;
 
     DEFAULT_FILE_SUFFIXES = initOptions.DEFAULT_FILE_SUFFIXES;
     fileSuffixes = initOptions.fileSuffixes;
@@ -190,8 +200,12 @@ connection.onDidChangeConfiguration((params) => {
 
     if (changed) {
         connection.console.info(`Configuration changed: ${deepscanServer} (proxy: ${proxyServer}, fileSuffixes: ${fileSuffixes})`);
-        // Reinspect any open text documents.
-        documents.all().forEach(inspect);
+    }
+});
+
+connection.onExecuteCommand((e: ExecuteCommandParams) => {
+    if (e.command === 'deepscan.updateToken') {
+        token = e.arguments[0];
     }
 });
 
@@ -257,11 +271,28 @@ function parseProxy(proxyUrl) {
 }
 
 async function inspect(identifier: VersionedTextDocumentIdentifier) {
+    const guideUrl = `${deepscanServer}/docs/deepscan/vscode#token`;
+    const generateUrl = `${deepscanServer}/dashboard/#view=account-settings`;
+    if (!token) {
+        connection.console.error('DeepScan access token is required for using the DeepScan extension. Follow these steps to register a new token.\n'
+        + `    1. You can regenerate a new token in DeepScan Account Settings page(${generateUrl}).\n`
+        + `    2. Back to VS Code and open the Command Palette\n`
+        + `    3. Type in 'Configure DeepScan Access Token For VS Code'\n`
+        + `    4. Paste in your newly generated token value.\n`
+        + `Please, visit DeepScan Guide(${guideUrl}) for more information.`);
+        connection.sendNotification(StatusNotification.type, {
+            state: TokenStatus.empty,
+            message: null,
+            uri: null,
+        });
+        return;
+    }
+
     let uri = identifier.uri;
     let textDocument = documents.get(uri);
     let docContent = textDocument.getText();
 
-    const URL = `${deepscanServer}/api/demo`;
+    const URL = `${deepscanServer}/api/vscode/analysis`;
     const MAX_LINES = 10000;
     const MAX_CHARS = 500000;
 
@@ -311,6 +342,7 @@ async function inspect(identifier: VersionedTextDocumentIdentifier) {
         const response = await axios.post(URL, form, {
             proxy: parseProxy(proxyServer),
             headers: {
+                "Authorization": `Bearer ${token}`,
                 "user-agent": userAgent,
                 ...form.getHeaders(),
             },
@@ -331,12 +363,26 @@ async function inspect(identifier: VersionedTextDocumentIdentifier) {
             uri,
         });
     } catch (err) {
-        const message = err?.response?.data?.data?.reason || err.message;
-        connection.console.error(`Failed to inspect: ${message}`);
+        let message = err?.response?.data?.reason || err.message;
         // Clear problems
         sendDiagnostics([]);
+        let state: Status | TokenStatus = Status.fail;
+        if (message.includes('expired')) {
+            state = TokenStatus.expired;
+            message = 'Sorry, DeepScan access token has expired. Follow these steps to configure a new token.\n'
+            + `    1. You can regenerate a new token in DeepScan Account Settings page(${generateUrl}).\n`
+            + `    2. Back to VS Code and open the Command Palette\n`
+            + `    3. Type in 'Configure DeepScan Access Token For VS Code'\n`
+            + `    4. Paste in your newly generated token value.\n`
+            + `Please, visit DeepScan Guide(${guideUrl}) for more information.`;
+        } else if (message.includes('Invalid')) {
+            state = TokenStatus.invalid;
+            message = `Sorry, DeepScan access token is invalid. Check to make sure you copy the correct token value.\n`
+            + `Please, visit DeepScan Guide(${guideUrl}) for more information.`;
+        }
+        connection.console.error(`Failed to inspect: ${message}`);
         connection.sendNotification(StatusNotification.type, {
-            state: Status.fail,
+            state,
             message,
             uri: null,
         });
@@ -385,8 +431,8 @@ function parseLocation(location) {
 }
 
 function detachSlash(path) {
-    var len = path.length;
-    if (path[len - 1] === '/') {
+    let len = path.length;
+    if (len && path[len - 1] === '/') {
         return path.substr(0, len - 1);
     } else {
         return path;

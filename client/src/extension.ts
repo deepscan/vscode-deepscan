@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 'use strict';
 
-import * as child_process from "child_process";
+import * as child_process from 'child_process';
 import * as _ from 'lodash';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -19,15 +19,16 @@ import {
     StreamInfo
 } from 'vscode-languageclient';
 
-import { CommandIds, Status, StatusNotification, StatusParams } from './types';
+import { CommandIds, Status, TokenStatus, StatusNotification, StatusParams } from './types';
 
 import disableRuleCodeActionProvider from './actions/disableRulesCodeActionProvider';
 import showRuleCodeActionProvider from './actions/showRuleCodeActionProvider';
 
 import { activateDecorations } from './deepscanDecorators';
+import { DeepscanToken } from './deepscanToken';
 
 import { StatusBar } from './StatusBar';
-import { sendRequest, warn } from './utils';
+import { sendRequest, updateTokenRequest, warn, detachSlash } from './utils';
 
 const packageJSON = vscode.extensions.getExtension('DeepScan.vscode-deepscan').packageJSON;
 
@@ -50,6 +51,25 @@ export function activate(context: vscode.ExtensionContext) {
 
 async function activateClient(context: vscode.ExtensionContext) {
     let statusBarMessage: vscode.Disposable = null;
+
+    async function handleTokenNotification(params: StatusParams) {
+        const { globalState } = context;
+        switch (params.state) {
+            case TokenStatus.empty:
+                const isOneOffTokenNofiticationShown = globalState.get('isOneOffTokenNofiticationShown');
+                if (isOneOffTokenNofiticationShown === false) {
+                    await deepscanToken.showEmptyTokenNotification();
+                }
+                break;
+            case TokenStatus.expired:
+                globalState.update('isOneOffTokenNofiticationShown', false);
+                await deepscanToken.showExpiredTokenNotification();
+                break;
+            case TokenStatus.invalid:
+                await deepscanToken.showInvalidTokenNotification();
+                break;
+        }
+    }
 
     function updateStatus(status: Status) {
         statusBar.update(status);
@@ -81,7 +101,7 @@ async function activateClient(context: vscode.ExtensionContext) {
         return !_.isEqual(oldConfig.get(key), newConfig.get(key));
     }
 
-    function changeConfiguration(): void {
+    async function changeConfiguration(): Promise<void> {
         clearNotification();
 
         const newConfig = getDeepScanConfiguration();
@@ -89,19 +109,19 @@ async function activateClient(context: vscode.ExtensionContext) {
         const isChanged = isConfigurationChanged('fileSuffixes', oldConfig, newConfig) ||
                           isConfigurationChanged('serverEmbedded.enable', oldConfig, newConfig) ||
                           isConfigurationChanged('serverEmbedded.serverJar', oldConfig, newConfig);
+        const isChangedIgnoreConfig = isConfigurationChanged('ignoreRules', oldConfig, newConfig) ||
+                          isConfigurationChanged('ignorePatterns', oldConfig, newConfig);
 
         // NOTE:
         // To apply changed file suffixes directly, documentSelector of LanguageClient should be changed.
         // But it seems to be impossible, so VS Code needs to restart.
-        if (isChanged) {
+        if (isChanged || (!isEmbedded() && isChangedIgnoreConfig)) {
             oldConfig = newConfig;
             const reload = 'Reload Now';
-            vscode.window.showInformationMessage('Restart VS Code before the new setting will take affect.', ...[reload])
-                         .then(selection => {
-                             if (selection === reload) {
-                                 vscode.commands.executeCommand('workbench.action.reloadWindow');
-                             }
-                         });
+            const selected = await vscode.window.showInformationMessage('Restart VS Code before the new setting will take affect.', ...[reload]);
+            if (selected === reload) {
+                vscode.commands.executeCommand('workbench.action.reloadWindow');
+            }
         }
     }
 
@@ -125,8 +145,8 @@ async function activateClient(context: vscode.ExtensionContext) {
     if (isEmbedded()) {
         serverOptions = () => runServer();
     } else {
-        let serverModule = context.asAbsolutePath(path.join('server', 'out', 'server.js'));
-        let debugOptions = { execArgv: ["--nolazy", "--inspect=6004"] };
+        const serverModule = context.asAbsolutePath(path.join('server', 'out', 'server.js'));
+        const debugOptions = { execArgv: ['--nolazy', '--inspect=6004'] };
         serverOptions = {
             run: { module: serverModule, transport: TransportKind.ipc },
             debug: { module: serverModule, transport: TransportKind.ipc, options: debugOptions }
@@ -140,6 +160,9 @@ async function activateClient(context: vscode.ExtensionContext) {
 
     let activeDecorations;
 
+    const serverUrl = getServerUrl();
+    const deepscanToken = new DeepscanToken(context, serverUrl);
+    const token = await deepscanToken.getToken();
     let clientOptions: LanguageClientOptions = {
         documentSelector: staticDocuments,
         diagnosticCollectionName: DIAGNOSTIC_SOURCE_NAME,
@@ -152,6 +175,7 @@ async function activateClient(context: vscode.ExtensionContext) {
             const defaultUrl = 'https://deepscan.io';
             return {
                 server: configuration ? configuration.get('server', defaultUrl) : defaultUrl,
+                token,
                 DEFAULT_FILE_SUFFIXES,
                 fileSuffixes: getFileSuffixes(configuration),
                 userAgent: `${packageJSON.name}/${packageJSON.version}`
@@ -208,9 +232,13 @@ async function activateClient(context: vscode.ExtensionContext) {
 
         client.onNotification(StatusNotification.type, (params) => {
             const { state, uri } = params;
-            updateStatus(state);
-            showNotificationIfNeeded(params);
-            activeDecorations.updateDecorations(uri);
+            if (state in TokenStatus) {
+                handleTokenNotification(params);
+            } else {
+                updateStatus(state as Status);
+                showNotificationIfNeeded(params);
+                activeDecorations.updateDecorations(uri);
+            }
         });
 
         client.onNotification(exitCalled, (params) => {
@@ -259,6 +287,10 @@ async function activateClient(context: vscode.ExtensionContext) {
             const diagnostics = vscode.languages.getDiagnostics();
             sendRequest(client, command, null, [diagnostics]);
         }),
+        vscode.commands.registerCommand(CommandIds.updateToken, async () => {
+            const token = await deepscanToken.getToken();
+            updateTokenRequest(client, token);
+        }),
         vscode.commands.registerCommand(CommandIds.showOutput, () => { client.outputChannel.show(); }),
         statusBar.getStatusBarItem()
     );
@@ -266,6 +298,7 @@ async function activateClient(context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeConfiguration(changeConfiguration);
 
     await checkSetting();
+    await checkDeepscanToken(context, deepscanToken);
 }
 
 function registerEmbeddedCommand(command: string, handler) {
@@ -283,6 +316,22 @@ function registerEmbeddedCommand(command: string, handler) {
         handler(command);
     });
     return embeddedCommand;
+}
+
+async function checkDeepscanToken(context, deepscanToken) {
+    const config = getDeepScanConfiguration();
+
+    if (config.get('enable') === false || packageJSON.version !== '1.63.0' ) {
+        return;
+    }
+    if (context.globalState.get('ignoreTokenWarning') === true) {
+        return;
+    }
+    context.globalState.update('isOneOffTokenNofiticationShown', true);
+    const selected = await deepscanToken.showOneOffTokenNotification();
+    if (selected === 'Don\'t show again') {
+        context.globalState.update('ignoreTokenWarning', true);
+    }
 }
 
 async function checkSetting() {
@@ -325,7 +374,11 @@ function getDeepScanConfiguration(): vscode.WorkspaceConfiguration {
 }
 
 function isEmbedded(): boolean {
-    return getDeepScanConfiguration().get("serverEmbedded.enable");
+    return getDeepScanConfiguration().get('serverEmbedded.enable');
+}
+
+function getServerUrl(): string {
+    return detachSlash(getDeepScanConfiguration().get('server')) || 'https://deepscan.io';
 }
 
 function runServer(): Thenable<StreamInfo> {
@@ -357,7 +410,7 @@ function runServer(): Thenable<StreamInfo> {
         });
 
         child.stderr.on('data', function (data) {
-            console.log(data.toString()); 
+            console.log(data.toString());
         });
     });
 }

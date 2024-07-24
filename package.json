@@ -2,7 +2,7 @@
     "name": "vscode-deepscan",
     "displayName": "DeepScan",
     "description": "Detect bugs and quality issues in JavaScript, TypeScript, React and Vue.js more precisely",
-    "version": "1.62.1",
+    "version": "1.63.0",
     "author": "DeepScan",
     "publisher": "DeepScan",
     "license": "MIT",
@@ -12,7 +12,7 @@
     },
     "icon": "deepscan_icon.png",
     "engines": {
-        "vscode": "^1.25.0"
+        "vscode": "^1.53.0"
     },
     "categories": [
         "Linters"
@@ -125,6 +125,16 @@
                 "category": "DeepScan",
                 "command": "deepscan.clearProject",
                 "title": "Clear Project Problems"
+            },
+            {
+                "category": "DeepScan",
+                "command": "deepscan.setToken",
+                "title": "Configure DeepScan Access Token For VS Code"
+            },
+            {
+                "category": "DeepScan",
+                "command": "deepscan.deleteToken",
+                "title": "Delete DeepScan Access Token For VS Code"
             }
         ]
     },
