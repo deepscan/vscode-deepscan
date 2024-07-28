@@ -274,12 +274,7 @@ async function inspect(identifier: VersionedTextDocumentIdentifier) {
     const guideUrl = `${deepscanServer}/docs/deepscan/vscode#token`;
     const generateUrl = `${deepscanServer}/dashboard/#view=account-settings`;
     if (!token) {
-        connection.console.error('DeepScan access token is required for using the DeepScan extension. Follow these steps to register a new token.\n'
-        + `    1. You can regenerate a new token in DeepScan Account Settings page(${generateUrl}).\n`
-        + `    2. Back to VS Code and open the Command Palette\n`
-        + `    3. Type in 'Configure DeepScan Access Token For VS Code'\n`
-        + `    4. Paste in your newly generated token value.\n`
-        + `Please, visit DeepScan Guide(${guideUrl}) for more information.`);
+        connection.console.error(`Failed to inspect: DeepScan access token not configured. Visit ${guideUrl} to generate a token.`);
         connection.sendNotification(StatusNotification.type, {
             state: TokenStatus.empty,
             message: null,
@@ -369,16 +364,10 @@ async function inspect(identifier: VersionedTextDocumentIdentifier) {
         let state: Status | TokenStatus = Status.fail;
         if (message.includes('expired')) {
             state = TokenStatus.expired;
-            message = 'Sorry, DeepScan access token has expired. Follow these steps to configure a new token.\n'
-            + `    1. You can regenerate a new token in DeepScan Account Settings page(${generateUrl}).\n`
-            + `    2. Back to VS Code and open the Command Palette\n`
-            + `    3. Type in 'Configure DeepScan Access Token For VS Code'\n`
-            + `    4. Paste in your newly generated token value.\n`
-            + `Please, visit DeepScan Guide(${guideUrl}) for more information.`;
+            message = `DeepScan access token expired. Visit ${generateUrl} to regenerate the token.`;
         } else if (message.includes('Invalid')) {
             state = TokenStatus.invalid;
-            message = `Sorry, DeepScan access token is invalid. Check to make sure you copy the correct token value.\n`
-            + `Please, visit DeepScan Guide(${guideUrl}) for more information.`;
+            message = `invalid DeepScan access token. Visit ${generateUrl} to regenerate the token and make sure to copy the correct token string.`;
         }
         connection.console.error(`Failed to inspect: ${message}`);
         connection.sendNotification(StatusNotification.type, {

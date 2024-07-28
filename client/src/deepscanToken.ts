@@ -10,7 +10,7 @@ export class DeepscanToken {
   private readonly _secretStorage: vscode.SecretStorage;
   private tokenName: string;
   private serverUrl: string;
-  private tokenRenerateUrl: string;
+  private tokenRegenerateUrl: string;
 
   constructor(context: vscode.ExtensionContext, serverUrl: string) {
     this._secretStorage = context.secrets;
@@ -23,7 +23,7 @@ export class DeepscanToken {
 
   private _validateToken(token: string) {
    if (!token) {
-      vscode.window.showWarningMessage(`Sorry, DeepScan access token for VS Code cannot be blank.`);
+      vscode.window.showWarningMessage(`Access token cannot be blank.`);
       return false;
    }
     return true;
@@ -48,7 +48,7 @@ export class DeepscanToken {
   private _registerCommands() {
     vscode.commands.registerCommand('deepscan.setToken', async () => {
       let tokenInput: string = await vscode.window.showInputBox({
-          title: "Configure DeepScan Access Token For VS Code"
+          title: "Configure DeepScan Access Token"
       }) ?? '';
       tokenInput = tokenInput.trim();
       if (this._validateToken(tokenInput)) {
@@ -61,14 +61,14 @@ export class DeepscanToken {
       if (token) {
         const deleteAction = 'Delete';
         const cancel = 'Cancel';
-        const message = `Are you sure you want to delete your DeepScan access token? The DeepScan extension will no longer be able to inspect.`;
+        const message = `Are you sure you want to delete the DeepScan access token? DeepScan extension will no longer be able to inspect your code.`;
         const selected = await vscode.window.showWarningMessage(message, deleteAction, cancel);
         if (selected === deleteAction) {
           this.deleteToken();
           vscode.window.showInformationMessage(`Deepscan access token is successfully deleted.`);
         }
       } else {
-        vscode.window.showInformationMessage(`Sorry, DeepScan access token doesn't exist.`);
+        vscode.window.showInformationMessage(`Nothing to delete. DeepScan access token is currently not registered.`);
       }
     });
   }
@@ -79,11 +79,11 @@ export class DeepscanToken {
         return;
     }
 
-    const generate = 'Generate';
+    const generate = 'Generate Token';
     const neverShowAgain = 'Don\'t show again';
-    const message = `DeepScan access token is required for using the DeepScan extension.
-    The token was introduced as a step towards providing personalization features.
-    You can generate a new token by clicking on the button below to go to DeepScan Account Settings page.`;
+    const message =
+      'An access token is required for using the DeepScan extension. ' +
+      'DeepScan server uses the token to provide reliable and managed inspection of your code.';
     const selected = await vscode.window.showWarningMessage(message, generate, neverShowAgain);
     if (selected === generate) {
         vscode.env.openExternal(vscode.Uri.parse(this.tokenRenerateUrl));
@@ -102,9 +102,8 @@ export class DeepscanToken {
   }
 
   async showExpiredTokenNotification() {
-    const regenerate = 'Regenerate';
-    const message = `Sorry, DeepScan access token has expired.
-    You can regenerate a new token by clicking on the button below to go to DeepScan Account Settings page.`;
+    const regenerate = 'Regenerate Token';
+    const message = `Your DeepScan access token has expired. Regenerate it to continue inspecting your code with DeepScan.`;
     const selected = await vscode.window.showErrorMessage(message, regenerate);
     if (selected === regenerate) {
       vscode.env.openExternal(vscode.Uri.parse(this.tokenRenerateUrl));
@@ -113,7 +112,7 @@ export class DeepscanToken {
 
   async showInvalidTokenNotification() {
     const check = 'Go to DeepScan';
-    const message = `Sorry, DeepScan access token is invalid. Check to make sure you copy the correct token string.`;
+    const message = `Your DeepScan access token is not valid. Regenerate it and make sure to copy the currect token string.`;
     const selected = await vscode.window.showErrorMessage(message, check);
     if (selected === check) {
       vscode.env.openExternal(vscode.Uri.parse(this.serverUrl));

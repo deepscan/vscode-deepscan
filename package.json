@@ -12,7 +12,7 @@
     },
     "icon": "deepscan_icon.png",
     "engines": {
-        "vscode": "^1.53.0"
+        "vscode": "^1.56.0"
     },
     "categories": [
         "Linters"
@@ -129,12 +129,12 @@
             {
                 "category": "DeepScan",
                 "command": "deepscan.setToken",
-                "title": "Configure DeepScan Access Token For VS Code"
+                "title": "Configure Access Token"
             },
             {
                 "category": "DeepScan",
                 "command": "deepscan.deleteToken",
-                "title": "Delete DeepScan Access Token For VS Code"
+                "title": "Delete Access Token"
             }
         ]
     },
