@@ -15,14 +15,11 @@ export enum Status {
     none = 0,
     ok = 1, // No alarm
     warn = 2, // Any alarm regardless of impact
-    fail = 3 // Analysis failed
-}
+    fail = 3, // Analysis failed
 
-export enum TokenStatus {
-    valid = 4,
-    empty = 5,
-    invalid = 6,
-    expired = 7
+    EMPTY_TOKEN = 10,
+    INVALID_TOKEN = 11,
+    EXPIRED_TOKEN = 12
 }
 
 // "severity" of client.diagnostics. Seems not to comply with the DiagnosticSeverity of language-server.
@@ -42,7 +39,7 @@ export interface Suggestion {
 }
 
 export interface StatusParams {
-    state: Status | TokenStatus,
+    state: Status,
     message: string,
     uri: string,
     suggestions: Suggestion[]

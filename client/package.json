@@ -11,7 +11,7 @@
         "url": "https://github.com/deepscan/vscode-deepscan.git"
     },
     "engines": {
-        "vscode": "^1.25.1"
+        "vscode": "^1.56.0"
     },
     "scripts": {},
     "dependencies": {

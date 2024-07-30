@@ -24,18 +24,15 @@ enum Status {
     none = 0,
     ok = 1,
     warn = 2,
-    fail = 3
-}
+    fail = 3,
 
-export enum TokenStatus {
-    valid = 4,
-    empty = 5,
-    invalid = 6,
-    expired = 7
+    EMPTY_TOKEN = 10,
+    INVALID_TOKEN = 11,
+    EXPIRED_TOKEN = 12
 }
 
 interface StatusParams {
-    state: Status | TokenStatus,
+    state: Status,
     message: string,
     uri: string
 }
@@ -183,16 +180,6 @@ connection.onDidChangeConfiguration((params) => {
         changed = true;
     }
 
-    if (!_.isEqual(ignoreRules, settings.deepscan.ignoreRules)) {
-        ignoreRules = settings.deepscan.ignoreRules;
-        changed = true;
-    }
-
-    if (!_.isEqual(ignorePatterns, settings.deepscan.ignorePatterns)) {
-        ignorePatterns = settings.deepscan.ignorePatterns;
-        changed = true;
-    }
-
     if (!_.isEqual(fileSuffixes, settings.deepscan.fileSuffixes)) {
         initializeSupportedFileSuffixes();
         changed = true;
@@ -273,15 +260,6 @@ function parseProxy(proxyUrl) {
 async function inspect(identifier: VersionedTextDocumentIdentifier) {
     const guideUrl = `${deepscanServer}/docs/deepscan/vscode#token`;
     const generateUrl = `${deepscanServer}/dashboard/#view=account-settings`;
-    if (!token) {
-        connection.console.error(`Failed to inspect: DeepScan access token not configured. Visit ${guideUrl} to generate a token.`);
-        connection.sendNotification(StatusNotification.type, {
-            state: TokenStatus.empty,
-            message: null,
-            uri: null,
-        });
-        return;
-    }
 
     let uri = identifier.uri;
     let textDocument = documents.get(uri);
@@ -293,6 +271,18 @@ async function inspect(identifier: VersionedTextDocumentIdentifier) {
 
     function sendDiagnostics(diagnostics) {
         connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+    }
+
+    if (!token) {
+        const message = `Failed to inspect: DeepScan access token not configured. Visit ${guideUrl} to generate a token.`;
+        connection.console.error(message);
+        sendDiagnostics([]);
+        connection.sendNotification(StatusNotification.type, {
+            state: Status.EMPTY_TOKEN,
+            message,
+            uri: null,
+        });
+        return;
     }
 
     if (docContent.trim() === '') {
@@ -361,12 +351,13 @@ async function inspect(identifier: VersionedTextDocumentIdentifier) {
         let message = err?.response?.data?.reason || err.message;
         // Clear problems
         sendDiagnostics([]);
-        let state: Status | TokenStatus = Status.fail;
-        if (message.includes('expired')) {
-            state = TokenStatus.expired;
-            message = `DeepScan access token expired. Visit ${generateUrl} to regenerate the token.`;
-        } else if (message.includes('Invalid')) {
-            state = TokenStatus.invalid;
+        let state: Status = Status.fail;
+        const isTokenMessage = message.includes('token');
+        if (isTokenMessage && message.includes('expired')) {
+            state = Status.EXPIRED_TOKEN;
+            message = `DeepScan access token has expired. Visit ${generateUrl} to regenerate the token.`;
+        } else if (isTokenMessage && message.includes('Invalid')) {
+            state = Status.INVALID_TOKEN;
             message = `invalid DeepScan access token. Visit ${generateUrl} to regenerate the token and make sure to copy the correct token string.`;
         }
         connection.console.error(`Failed to inspect: ${message}`);

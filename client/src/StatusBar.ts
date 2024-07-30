@@ -36,7 +36,7 @@ export class StatusBar {
         return this.statusBarItem.tooltip;
     }
 
-    setTooltip(text: string | vscode.MarkdownString) {
+    setTooltip(text: string) {
         this.statusBarItem.tooltip = text;
     }
 
@@ -61,6 +61,9 @@ export class StatusBar {
                 tooltip = 'Issue(s) detected!';
                 break;
             case Status.fail:
+            case Status.EMPTY_TOKEN:
+            case Status.EXPIRED_TOKEN:
+            case Status.INVALID_TOKEN:
                 color = 'darkred';
                 tooltip = 'Inspection failed!';
                 break;

@@ -19,7 +19,7 @@ import {
     StreamInfo
 } from 'vscode-languageclient';
 
-import { CommandIds, Status, TokenStatus, StatusNotification, StatusParams } from './types';
+import { CommandIds, Status, StatusNotification, StatusParams } from './types';
 
 import disableRuleCodeActionProvider from './actions/disableRulesCodeActionProvider';
 import showRuleCodeActionProvider from './actions/showRuleCodeActionProvider';
@@ -55,17 +55,12 @@ async function activateClient(context: vscode.ExtensionContext) {
     async function handleTokenNotification(params: StatusParams) {
         const { globalState } = context;
         switch (params.state) {
-            case TokenStatus.empty:
-                const isOneOffTokenNofiticationShown = globalState.get('isOneOffTokenNofiticationShown');
-                if (isOneOffTokenNofiticationShown === false) {
-                    await deepscanToken.showEmptyTokenNotification();
-                }
-                break;
-            case TokenStatus.expired:
-                globalState.update('isOneOffTokenNofiticationShown', false);
+            case Status.EXPIRED_TOKEN:
+                globalState.update('isInspectFailureNotificationDisabled', true);
                 await deepscanToken.showExpiredTokenNotification();
                 break;
-            case TokenStatus.invalid:
+            case Status.INVALID_TOKEN:
+                globalState.update('isInspectFailureNotificationDisabled', true);
                 await deepscanToken.showInvalidTokenNotification();
                 break;
         }
@@ -93,7 +88,9 @@ async function activateClient(context: vscode.ExtensionContext) {
 
     function updateStatusBar(editor: vscode.TextEditor): void {
         const isValidSuffix = editor && _.includes(getSupportedFileSuffixes(getDeepScanConfiguration()), path.extname(editor.document.fileName));
-        const show = serverRunning && (statusBar.getStatus() === Status.fail || isValidSuffix);
+        const status = statusBar.getStatus();
+        const needToShowStatusbar = status === Status.fail || status === Status.EMPTY_TOKEN || status == Status.EXPIRED_TOKEN || status === Status.INVALID_TOKEN;
+        const show = serverRunning && (needToShowStatusbar || isValidSuffix);
         statusBar.show(show);
     }
 
@@ -172,9 +169,8 @@ async function activateClient(context: vscode.ExtensionContext) {
             configurationSection: 'deepscan'
         },
         initializationOptions: () => {
-            const defaultUrl = 'https://deepscan.io';
             return {
-                server: configuration ? configuration.get('server', defaultUrl) : defaultUrl,
+                server: serverUrl,
                 token,
                 DEFAULT_FILE_SUFFIXES,
                 fileSuffixes: getFileSuffixes(configuration),
@@ -232,12 +228,11 @@ async function activateClient(context: vscode.ExtensionContext) {
 
         client.onNotification(StatusNotification.type, (params) => {
             const { state, uri } = params;
-            if (state in TokenStatus) {
+            updateStatus(state);
+            showNotificationIfNeeded(params);
+            activeDecorations.updateDecorations(uri);
+            if (state === Status.INVALID_TOKEN || state == Status.EXPIRED_TOKEN) {
                 handleTokenNotification(params);
-            } else {
-                updateStatus(state as Status);
-                showNotificationIfNeeded(params);
-                activeDecorations.updateDecorations(uri);
             }
         });
 
@@ -288,6 +283,7 @@ async function activateClient(context: vscode.ExtensionContext) {
             sendRequest(client, command, null, [diagnostics]);
         }),
         vscode.commands.registerCommand(CommandIds.updateToken, async () => {
+            context.globalState.update('isInspectFailureNotificationDisabled', false);
             const token = await deepscanToken.getToken();
             updateTokenRequest(client, token);
         }),
@@ -318,19 +314,18 @@ function registerEmbeddedCommand(command: string, handler) {
     return embeddedCommand;
 }
 
-async function checkDeepscanToken(context, deepscanToken) {
+async function checkDeepscanToken(context: vscode.ExtensionContext, deepscanToken: DeepscanToken) {
     const config = getDeepScanConfiguration();
 
-    if (config.get('enable') === false || packageJSON.version !== '1.63.0' ) {
+    if (config.get('enable') === false) {
         return;
     }
-    if (context.globalState.get('ignoreTokenWarning') === true) {
+    if (context.globalState.get('isInspectFailureNotificationDisabled') === true) {
         return;
     }
-    context.globalState.update('isOneOffTokenNofiticationShown', true);
-    const selected = await deepscanToken.showOneOffTokenNotification();
+    const selected = await deepscanToken.showActivationNotification();
     if (selected === 'Don\'t show again') {
-        context.globalState.update('ignoreTokenWarning', true);
+        context.globalState.update('isInspectFailureNotificationDisabled', true);
     }
 }
 
@@ -378,7 +373,9 @@ function isEmbedded(): boolean {
 }
 
 function getServerUrl(): string {
-    return detachSlash(getDeepScanConfiguration().get('server')) || 'https://deepscan.io';
+    const configuration = getDeepScanConfiguration();
+    const defaultUrl = 'https://deepscan.io';
+    return configuration ? detachSlash(configuration.get('server', defaultUrl)) : defaultUrl;
 }
 
 function runServer(): Thenable<StreamInfo> {
