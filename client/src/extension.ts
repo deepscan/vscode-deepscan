@@ -53,17 +53,18 @@ async function activateClient(context: vscode.ExtensionContext) {
     let statusBarMessage: vscode.Disposable = null;
 
     async function handleTokenNotification(params: StatusParams) {
-        const { globalState } = context;
+        if (context.globalState.get('isExpiredOrInvalidTokenWarningDisabled') === true) {
+            return;
+        }
         switch (params.state) {
             case Status.EXPIRED_TOKEN:
-                globalState.update('isInspectFailureNotificationDisabled', true);
-                await deepscanToken.showExpiredTokenNotification();
+                await deepscanToken.showExpiredTokenNotification(getServerUrl());
                 break;
             case Status.INVALID_TOKEN:
-                globalState.update('isInspectFailureNotificationDisabled', true);
-                await deepscanToken.showInvalidTokenNotification();
+                await deepscanToken.showInvalidTokenNotification(getServerUrl());
                 break;
         }
+        context.globalState.update('isExpiredOrInvalidTokenWarningDisabled', true);
     }
 
     function updateStatus(status: Status) {
@@ -78,8 +79,20 @@ async function activateClient(context: vscode.ExtensionContext) {
     function showNotificationIfNeeded(params: StatusParams) {
         clearNotification();
 
-        if (params.state === Status.fail) {
-            statusBarMessage = vscode.window.setStatusBarMessage(`A problem occurred communicating with DeepScan server. (${params.message})`);
+        if ([Status.fail, Status.EMPTY_TOKEN, Status.INVALID_TOKEN, Status.EXPIRED_TOKEN].includes(params.state)) {
+            let message = params.message;
+            switch (params.state) {
+                case Status.EMPTY_TOKEN:
+                    message = 'no access token';
+                    break;
+                case Status.EXPIRED_TOKEN:
+                    message = 'expired access token';
+                    break;
+                case Status.INVALID_TOKEN:
+                    message = 'invalid access token';
+                    break;
+            }
+            statusBarMessage = vscode.window.setStatusBarMessage(`A problem occurred communicating with DeepScan server. (${message})`);
         }
         else if (params.message) {
             statusBarMessage = vscode.window.setStatusBarMessage(`${params.message}`);
@@ -157,8 +170,7 @@ async function activateClient(context: vscode.ExtensionContext) {
 
     let activeDecorations;
 
-    const serverUrl = getServerUrl();
-    const deepscanToken = new DeepscanToken(context, serverUrl);
+    const deepscanToken = new DeepscanToken(context);
     const token = await deepscanToken.getToken();
     let clientOptions: LanguageClientOptions = {
         documentSelector: staticDocuments,
@@ -170,7 +182,7 @@ async function activateClient(context: vscode.ExtensionContext) {
         },
         initializationOptions: () => {
             return {
-                server: serverUrl,
+                server: getServerUrl(),
                 token,
                 DEFAULT_FILE_SUFFIXES,
                 fileSuffixes: getFileSuffixes(configuration),
@@ -283,7 +295,7 @@ async function activateClient(context: vscode.ExtensionContext) {
             sendRequest(client, command, null, [diagnostics]);
         }),
         vscode.commands.registerCommand(CommandIds.updateToken, async () => {
-            context.globalState.update('isInspectFailureNotificationDisabled', false);
+            context.globalState.update('isExpiredOrInvalidTokenWarningDisabled', false);
             const token = await deepscanToken.getToken();
             updateTokenRequest(client, token);
         }),
@@ -320,12 +332,12 @@ async function checkDeepscanToken(context: vscode.ExtensionContext, deepscanToke
     if (config.get('enable') === false) {
         return;
     }
-    if (context.globalState.get('isInspectFailureNotificationDisabled') === true) {
+    if (context.globalState.get('isEmptyTokenWarningDisabled') === true) {
         return;
     }
-    const selected = await deepscanToken.showActivationNotification();
+    const selected = await deepscanToken.showActivationNotification(getServerUrl());
     if (selected === 'Don\'t show again') {
-        context.globalState.update('isInspectFailureNotificationDisabled', true);
+        context.globalState.update('isEmptyTokenWarningDisabled', true);
     }
 }
 

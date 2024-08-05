@@ -54,7 +54,7 @@
                 },
                 "deepscan.ignoreRules": {
                     "type": "array",
-                    "description": "Configures the rules to be ignored.",
+                    "description": "Configures the rules to be ignored. (Restart required)",
                     "items": {
                         "anyOf": [
                             {
@@ -65,7 +65,7 @@
                 },
                 "deepscan.ignorePatterns": {
                     "type": "array",
-                    "description": "Configures the files to be ignored.",
+                    "description": "Configures the files to be ignored. (Restart required)",
                     "items": {
                         "anyOf": [
                             {

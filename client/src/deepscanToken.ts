@@ -9,18 +9,12 @@ import * as vscode from 'vscode';
 export class DeepscanToken {
   private readonly _secretStorage: vscode.SecretStorage;
   private tokenName: string;
-  private serverUrl: string;
-  private tokenGuideUrl: string;
-  private tokenRegenerateUrl: string;
 
-  constructor(context: vscode.ExtensionContext, serverUrl: string) {
+  constructor(context: vscode.ExtensionContext) {
     this._secretStorage = context.secrets;
     this._registerCommands();
     context.subscriptions.push(context.secrets.onDidChange((e) => this._handleSecretChange(e)));
     this.tokenName = 'deepscan-token';
-    this.serverUrl = serverUrl;
-    this.tokenGuideUrl = `${serverUrl}/docs/deepscan/vscode#token`;
-    this.tokenRegenerateUrl = `${serverUrl}/dashboard/#view=account-settings`;
   }
 
   setToken(token: string): Thenable<void> {
@@ -36,7 +30,9 @@ export class DeepscanToken {
   }
 
   private async _handleSecretChange(e: vscode.SecretStorageChangeEvent) {
-    vscode.commands.executeCommand('deepscan.updateToken');
+    if (e.key === this.tokenName) {
+      vscode.commands.executeCommand('deepscan.updateToken');
+    }
   }
 
   private _registerCommands() {
@@ -53,7 +49,7 @@ export class DeepscanToken {
           }
       });
       if (tokenInput) {
-        await this.setToken(tokenInput);
+        await this.setToken(tokenInput.trim());
       }
     });
 
@@ -66,7 +62,6 @@ export class DeepscanToken {
         const selected = await vscode.window.showWarningMessage(message, { modal: true }, deleteAction, cancelAction);
         if (selected === deleteAction) {
           await this.deleteToken();
-          vscode.window.showInformationMessage(`Deepscan access token is successfully deleted.`);
         }
       } else {
         vscode.window.showInformationMessage(`Nothing to delete. DeepScan access token is currently not registered.`);
@@ -74,7 +69,7 @@ export class DeepscanToken {
     });
   }
 
-  async showActivationNotification() {
+  async showActivationNotification(serverUrl: string) {
     const token = await this.getToken();
     if (token) {
         return;
@@ -84,29 +79,32 @@ export class DeepscanToken {
     const neverShowAgain = 'Don\'t show again';
     const message =
       'An access token is required for using the DeepScan extension. ' +
-      'DeepScan server uses the token to provide reliable and managed inspection of your code.';
+      'DeepScan server uses the token to provide reliable and prompt inspection of your code.';
     const selected = await vscode.window.showWarningMessage(message, generate, neverShowAgain);
     if (selected === generate) {
-        vscode.env.openExternal(vscode.Uri.parse(this.tokenGuideUrl));
+      const tokenGuideUrl = `${serverUrl}/docs/deepscan/vscode#token`;
+      vscode.env.openExternal(vscode.Uri.parse(tokenGuideUrl));
     }
     return selected;
   }
 
-  async showExpiredTokenNotification() {
+  async showExpiredTokenNotification(serverUrl: string) {
     const regenerate = 'Regenerate Token';
     const message = `Your DeepScan access token has expired. Regenerate it to continue inspecting your code with DeepScan.`;
     const selected = await vscode.window.showErrorMessage(message, regenerate);
     if (selected === regenerate) {
-      vscode.env.openExternal(vscode.Uri.parse(this.tokenRegenerateUrl));
+      const tokenRegenerateUrl = `${serverUrl}/dashboard/#view=account-settings`;
+      vscode.env.openExternal(vscode.Uri.parse(tokenRegenerateUrl));
     }
   }
 
-  async showInvalidTokenNotification() {
+  async showInvalidTokenNotification(serverUrl: string) {
     const regenerate = 'Regenerate Token';
     const message = `Your DeepScan access token is not valid. Regenerate it and make sure to copy the currect token string.`;
     const selected = await vscode.window.showErrorMessage(message, regenerate);
     if (selected === regenerate) {
-      vscode.env.openExternal(vscode.Uri.parse(this.tokenRegenerateUrl));
+      const tokenRegenerateUrl = `${serverUrl}/dashboard/#view=account-settings`;
+      vscode.env.openExternal(vscode.Uri.parse(tokenRegenerateUrl));
     }
   }
 }

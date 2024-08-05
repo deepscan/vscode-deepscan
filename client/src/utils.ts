@@ -32,12 +32,14 @@ export function updateTokenRequest(client: LanguageClient, newToken: string) {
         arguments: [ newToken ]
     };
 
-    client.sendRequest(ExecuteCommandRequest.type, params).then(
-        () => {
-            if (newToken) {
-                client.info('New DeepScan access token was configured.');
-            }
-        },
+    const successCallback = () => {
+        if (newToken) {
+            client.info('New DeepScan access token was configured.');
+        } else {
+            client.info('DeepScan access token was deleted.');
+        }
+    };
+    client.sendRequest(ExecuteCommandRequest.type, params).then(successCallback,
         (error) => {
             console.error('Server failed', error);
             vscode.window.showErrorMessage('Failed to send a request for updating DeepScan access token. Please consider opening an issue with steps to reproduce.');
