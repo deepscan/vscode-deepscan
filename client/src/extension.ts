@@ -56,6 +56,7 @@ async function activateClient(context: vscode.ExtensionContext) {
         if (context.globalState.get('isExpiredOrInvalidTokenWarningDisabled') === true) {
             return;
         }
+        context.globalState.update('isExpiredOrInvalidTokenWarningDisabled', true);
         switch (params.state) {
             case Status.EXPIRED_TOKEN:
                 await deepscanToken.showExpiredTokenNotification(getServerUrl());
@@ -64,7 +65,6 @@ async function activateClient(context: vscode.ExtensionContext) {
                 await deepscanToken.showInvalidTokenNotification(getServerUrl());
                 break;
         }
-        context.globalState.update('isExpiredOrInvalidTokenWarningDisabled', true);
     }
 
     function updateStatus(status: Status) {
