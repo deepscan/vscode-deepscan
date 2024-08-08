@@ -295,6 +295,10 @@ async function activateClient(context: vscode.ExtensionContext) {
             sendRequest(client, command, null, [diagnostics]);
         }),
         vscode.commands.registerCommand('deepscan.setToken', async () => {
+            if (isEmbedded()) {
+                warn(client, 'Not suppored in the embedded mode.', true);
+                return;
+            }
             let tokenInput: string = await vscode.window.showInputBox({
                 title: 'Configure DeepScan Access Token',
                 placeHolder: 'Paste your token here',
@@ -311,6 +315,10 @@ async function activateClient(context: vscode.ExtensionContext) {
             }
         }),
         vscode.commands.registerCommand('deepscan.deleteToken', async () => {
+            if (isEmbedded()) {
+                warn(client, 'Not suppored in the embedded mode.', true);
+                return;
+            }
             const token = await deepscanToken.getToken();
             if (token) {
               const deleteAction: vscode.MessageItem = { title: 'Delete' };
@@ -325,6 +333,10 @@ async function activateClient(context: vscode.ExtensionContext) {
             }
         }),
         vscode.commands.registerCommand('deepscan.showTokenInfo', async () => {
+            if (isEmbedded()) {
+                warn(client, 'Not suppored in the embedded mode.', true);
+                return;
+            }
             const Regenerate = 'Regenerate Token';
             const Close = 'Close';
             let message: string;
@@ -360,6 +372,9 @@ async function activateClient(context: vscode.ExtensionContext) {
             }
         }),
         vscode.commands.registerCommand(CommandIds.updateToken, async () => {
+            if (isEmbedded()) {
+                return;
+            }
             context.globalState.update('isExpiredOrInvalidTokenWarningDisabled', false);
             const token = await deepscanToken.getToken();
             updateTokenRequest(client, token);
@@ -392,8 +407,11 @@ function registerEmbeddedCommand(command: string, handler) {
 }
 
 async function checkDeepscanToken(context: vscode.ExtensionContext, deepscanToken: DeepscanToken) {
-    const config = getDeepScanConfiguration();
+    if (isEmbedded()) {
+        return;
+    }
 
+    const config = getDeepScanConfiguration();
     if (config.get('enable') === false) {
         return;
     }

@@ -43,6 +43,8 @@ For managing access token, this extension contributes the following commands to 
 - **Delete Access Token**: remove the currently registered token from VS Code. (The token at the server remains unaffected.)
 - **Show Access Token Info**: display the name and expiration date of the current token.
 
+**Note:** Access token is not needed in [Embedded Mode](#embedded-mode).
+
 ## Settings Options
 
 This extension contributes the following variables to the settings:
@@ -68,7 +70,7 @@ This extension contributes the following variables to the settings:
     ]
 }
 ```
-- `deepscan.fileSuffixes`: set an array of additional suffixes for files to analyze. (Needs restart to take affect)
+- `deepscan.fileSuffixes`: set an array of additional suffixes for files to analyze.
   An example to analyze `*.es` file as a JavaScript file:
 ```json
 {
