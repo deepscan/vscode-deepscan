@@ -19,7 +19,7 @@ import {
     StreamInfo
 } from 'vscode-languageclient';
 
-import { CommandIds, Status, StatusNotification, StatusParams } from './types';
+import { CommandIds, Status, StatusNotification, StatusParams, GetTokenInfoResponse } from './types';
 
 import disableRuleCodeActionProvider from './actions/disableRulesCodeActionProvider';
 import showRuleCodeActionProvider from './actions/showRuleCodeActionProvider';
@@ -28,7 +28,7 @@ import { activateDecorations } from './deepscanDecorators';
 import { DeepscanToken } from './deepscanToken';
 
 import { StatusBar } from './StatusBar';
-import { sendRequest, updateTokenRequest, warn, detachSlash } from './utils';
+import { sendRequest, updateTokenRequest, warn, detachSlash, formatDate } from './utils';
 
 const packageJSON = vscode.extensions.getExtension('DeepScan.vscode-deepscan').packageJSON;
 
@@ -83,10 +83,10 @@ async function activateClient(context: vscode.ExtensionContext) {
             let message = params.message;
             switch (params.state) {
                 case Status.EMPTY_TOKEN:
-                    message = 'no access token';
+                    message = 'access token not configured';
                     break;
                 case Status.EXPIRED_TOKEN:
-                    message = 'expired access token';
+                    message = 'access token expired';
                     break;
                 case Status.INVALID_TOKEN:
                     message = 'invalid access token';
@@ -293,6 +293,71 @@ async function activateClient(context: vscode.ExtensionContext) {
         registerEmbeddedCommand('deepscan.clearProject', (command) => {
             const diagnostics = vscode.languages.getDiagnostics();
             sendRequest(client, command, null, [diagnostics]);
+        }),
+        vscode.commands.registerCommand('deepscan.setToken', async () => {
+            let tokenInput: string = await vscode.window.showInputBox({
+                title: 'Configure DeepScan Access Token',
+                placeHolder: 'Paste your token here',
+                password: true,
+                validateInput: input => {
+                    if (!input.trim()) {
+                        return `Access token cannot be blank.`;
+                    }
+                    return null;
+                }
+            });
+            if (tokenInput) {
+                await deepscanToken.setToken(tokenInput.trim());
+            }
+        }),
+        vscode.commands.registerCommand('deepscan.deleteToken', async () => {
+            const token = await deepscanToken.getToken();
+            if (token) {
+              const deleteAction: vscode.MessageItem = { title: 'Delete' };
+              const cancelAction: vscode.MessageItem = { title: 'Cancel', isCloseAffordance: true };
+              const message = `Are you sure you want to delete the DeepScan access token? DeepScan extension will no longer be able to inspect your code.`;
+              const selected = await vscode.window.showWarningMessage(message, { modal: true }, deleteAction, cancelAction);
+              if (selected === deleteAction) {
+                await deepscanToken.deleteToken();
+              }
+            } else {
+              vscode.window.showInformationMessage(`Nothing to delete. DeepScan access token is currently not registered.`);
+            }
+        }),
+        vscode.commands.registerCommand('deepscan.showTokenInfo', async () => {
+            const Regenerate = 'Regenerate Token';
+            const Close = 'Close';
+            let message: string;
+            let buttons: string[];
+
+            const token = await deepscanToken.getToken();
+            if (!token) {
+                message = 'DeepScan access token is currently not registered.';
+                buttons = [Close];
+            } else {
+                const { name, expirationDate, error } = await client.sendRequest<GetTokenInfoResponse>('deepscan.getTokenInfo');
+                if (error && error.includes('token') && error.includes('Invalid')) {
+                    message = 'Your DeepScan access token is not valid.';
+                    buttons = [Regenerate, Close];
+                } else if (error) {
+                    message = `Failed to retrieve token information. (${error})`;
+                    buttons = [Close];
+                } else if (expirationDate === 0) {
+                    message = `DeepScan access token '${name}' is in use. It has no expiration date.`;
+                    buttons = [Close];
+                } else if (expirationDate < Date.now()) {
+                    message = `Your DeepScan access token '${name}' has been expired.`
+                    buttons = [Regenerate, Close];
+                } else {
+                    message = `DeepScan access token '${name}' is in use. It will expire on ${formatDate(expirationDate)}.`
+                    buttons = [Close];
+                }
+            }
+            const selected = await vscode.window.showInformationMessage(message, ...buttons);
+            if (selected === Regenerate) {
+                const tokenRegenerateUrl = `${getServerUrl()}/dashboard/#view=account-settings`;
+                vscode.env.openExternal(vscode.Uri.parse(tokenRegenerateUrl));
+            }
         }),
         vscode.commands.registerCommand(CommandIds.updateToken, async () => {
             context.globalState.update('isExpiredOrInvalidTokenWarningDisabled', false);

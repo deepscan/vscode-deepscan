@@ -196,6 +196,23 @@ connection.onExecuteCommand((e: ExecuteCommandParams) => {
     }
 });
 
+connection.onRequest('deepscan.getTokenInfo', async () => {
+    try {
+        const apiPath = `${deepscanServer}/api/vscode/tokeninfo`;
+        const response = await axios.get(apiPath, {
+            proxy: parseProxy(proxyServer),
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "user-agent": userAgent
+            },
+        });
+        return response.data.data;
+    } catch (err) {
+        let message = err?.response?.data?.reason || err.message;
+        return { error: message };
+    }
+});
+
 connection.onCompletion((_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
     return [{
         label: 'deepscan-disable',

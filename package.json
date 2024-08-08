@@ -135,6 +135,11 @@
                 "category": "DeepScan",
                 "command": "deepscan.deleteToken",
                 "title": "Delete Access Token"
+            },
+            {
+                "category": "DeepScan",
+                "command": "deepscan.showTokenInfo",
+                "title": "Show Access Token Info"
             }
         ]
     },

@@ -12,7 +12,6 @@ export class DeepscanToken {
 
   constructor(context: vscode.ExtensionContext) {
     this._secretStorage = context.secrets;
-    this._registerCommands();
     context.subscriptions.push(context.secrets.onDidChange((e) => this._handleSecretChange(e)));
     this.tokenName = 'deepscan-token';
   }
@@ -33,40 +32,6 @@ export class DeepscanToken {
     if (e.key === this.tokenName) {
       vscode.commands.executeCommand('deepscan.updateToken');
     }
-  }
-
-  private _registerCommands() {
-    vscode.commands.registerCommand('deepscan.setToken', async () => {
-      let tokenInput: string = await vscode.window.showInputBox({
-          title: 'Configure DeepScan Access Token',
-          placeHolder: 'Paste your token here',
-          password: true,
-          validateInput: input => {
-            if (!input.trim()) {
-              return `Access token cannot be blank.`;
-            }
-            return null;
-          }
-      });
-      if (tokenInput) {
-        await this.setToken(tokenInput.trim());
-      }
-    });
-
-    vscode.commands.registerCommand('deepscan.deleteToken', async () => {
-      const token = await this.getToken();
-      if (token) {
-        const deleteAction: vscode.MessageItem = { title: 'Delete' };
-        const cancelAction: vscode.MessageItem = { title: 'Cancel', isCloseAffordance: true };
-        const message = `Are you sure you want to delete the DeepScan access token? DeepScan extension will no longer be able to inspect your code.`;
-        const selected = await vscode.window.showWarningMessage(message, { modal: true }, deleteAction, cancelAction);
-        if (selected === deleteAction) {
-          await this.deleteToken();
-        }
-      } else {
-        vscode.window.showInformationMessage(`Nothing to delete. DeepScan access token is currently not registered.`);
-      }
-    });
   }
 
   async showActivationNotification(serverUrl: string) {

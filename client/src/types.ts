@@ -48,3 +48,9 @@ export interface StatusParams {
 export namespace StatusNotification {
     export const type = new NotificationType<StatusParams, void>('deepscan/status');
 }
+
+export interface GetTokenInfoResponse {
+    name?: string,
+    expirationDate?: number,
+    error?: string
+}
