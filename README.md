@@ -14,7 +14,14 @@ DeepScan is a cutting-edge JavaScript code inspection tool that helps you to fin
 >
 > Note that your code is completely deleted from the server right after the inspection.
 
-**Note 2:** Limitation of Analysis
+**Note 2:** DeepScan Access Token
+>
+> An access token is required for transferring code and receiving inspection results.
+> DeepScan server uses the token to provide reliable and prompt inspection of your code.
+>
+> Follow [instructions](https://deepscan.io/docs/deepscan/vscode#token) at DeepScan site to generate an access token for free.
+
+**Note 3:** Limitation of Analysis
 >
 > The analysis is only per the transferred file. Some rules requiring inter-module information, such as [REACT_MISMATCHED_TYPE_OF_PROP](https://deepscan.io/docs/rules/react-mismatched-type-of-prop), does not apply in this plugin. To fully make use of DeepScan, please check out [Embedded Mode](#embedded-mode).
 
@@ -25,6 +32,18 @@ DeepScan is a cutting-edge JavaScript code inspection tool that helps you to fin
 - Report issues in Problems panel when you open a `*.js`, `*.jsx`, `*.mjs`, `*.ts`, `*.tsx`, and `*.vue` file and save it.
 - Highlight issues in the code.
 - Show a rule description using a code action. When you click the light bulb of the issue, you can see the detailed description of the rule and grasp what's the problem.
+
+## DeepScan Access Token
+
+An access token is needed to inspect your code at the DeepScan server. Follow [instructions](https://deepscan.io/docs/deepscan/vscode#token) at the DeepScan site to generate the token.
+
+For managing access token, this extension contributes the following commands to the Command Palette:
+
+- **Configure Access Token**: register the token generated at the DeepScan site.
+- **Delete Access Token**: remove the currently registered token from VS Code. (The token at the server remains unaffected.)
+- **Show Access Token Info**: display the name and expiration date of the current token.
+
+**Note:** Access token is not needed in [Embedded Mode](#embedded-mode).
 
 ## Settings Options
 
@@ -51,7 +70,7 @@ This extension contributes the following variables to the settings:
     ]
 }
 ```
-- `deepscan.fileSuffixes`: set an array of additional suffixes for files to analyze. (Needs restart to take affect)
+- `deepscan.fileSuffixes`: set an array of additional suffixes for files to analyze.
   An example to analyze `*.es` file as a JavaScript file:
 ```json
 {
@@ -88,7 +107,7 @@ Read more about it [here](https://deepscan.io/docs/get-started/disabling-rules/)
 >
 > To activate this, contact us at [support@deepscan.io](mailto:support@deepscan.io).
 
-In the embedded mode, this extension contributes the following commands to the Command palette.
+In the embedded mode, this extension contributes the following commands to the Command Palette:
 
 - **Inspect Project**: inspect the current project.
 - **Clear Project Problems**: clear inspected problems.

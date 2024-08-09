@@ -11,11 +11,11 @@
         "url": "https://github.com/deepscan/vscode-deepscan.git"
     },
     "engines": {
-        "vscode": "^1.25.1"
+        "vscode": "^1.56.0"
     },
     "scripts": {},
     "dependencies": {
-        "@types/vscode": "^1.25.0",
+        "@types/vscode": "~1.56.0",
         "lodash": "^4.17.21",
         "showdown": "^1.9.1",
         "showdown-htmlescape": "^0.1.9",

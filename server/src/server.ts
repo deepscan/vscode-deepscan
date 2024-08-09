@@ -12,11 +12,11 @@ import {
     NotificationType, Diagnostic, DiagnosticSeverity,
     TextDocuments, TextDocument, TextDocumentSyncKind, VersionedTextDocumentIdentifier,
     TextDocumentPositionParams, CompletionItem, CompletionItemKind,
-    IPCMessageReader, IPCMessageWriter
+    IPCMessageReader, IPCMessageWriter, ExecuteCommandParams
 } from 'vscode-languageserver';
 import { URL } from 'url';
 
-var path = require('path');
+const path = require('path');
 const axios = require('axios').default;
 const FormData = require('form-data');
 
@@ -24,7 +24,11 @@ enum Status {
     none = 0,
     ok = 1,
     warn = 2,
-    fail = 3
+    fail = 3,
+
+    EMPTY_TOKEN = 10,
+    INVALID_TOKEN = 11,
+    EXPIRED_TOKEN = 12
 }
 
 interface StatusParams {
@@ -83,6 +87,7 @@ let supportedFileSuffixes: string[] = null;
 
 // options
 let enable: boolean = undefined;
+let token:string = undefined;
 let deepscanServer: string = undefined;
 let proxyServer: string = undefined;
 let userAgent: string = undefined;
@@ -129,6 +134,7 @@ function initializeSupportedFileSuffixes() {
 connection.onInitialize((params) => {
     let initOptions: {
         server: string;
+        token: string;
         proxy: string;
         DEFAULT_FILE_SUFFIXES: string[];
         fileSuffixes: string[];
@@ -136,6 +142,7 @@ connection.onInitialize((params) => {
     } = params.initializationOptions;
     deepscanServer = getServerUrl(initOptions.server);
     proxyServer = initOptions.proxy;
+    token = initOptions.token;
 
     DEFAULT_FILE_SUFFIXES = initOptions.DEFAULT_FILE_SUFFIXES;
     fileSuffixes = initOptions.fileSuffixes;
@@ -173,16 +180,6 @@ connection.onDidChangeConfiguration((params) => {
         changed = true;
     }
 
-    if (!_.isEqual(ignoreRules, settings.deepscan.ignoreRules)) {
-        ignoreRules = settings.deepscan.ignoreRules;
-        changed = true;
-    }
-
-    if (!_.isEqual(ignorePatterns, settings.deepscan.ignorePatterns)) {
-        ignorePatterns = settings.deepscan.ignorePatterns;
-        changed = true;
-    }
-
     if (!_.isEqual(fileSuffixes, settings.deepscan.fileSuffixes)) {
         initializeSupportedFileSuffixes();
         changed = true;
@@ -190,8 +187,29 @@ connection.onDidChangeConfiguration((params) => {
 
     if (changed) {
         connection.console.info(`Configuration changed: ${deepscanServer} (proxy: ${proxyServer}, fileSuffixes: ${fileSuffixes})`);
-        // Reinspect any open text documents.
-        documents.all().forEach(inspect);
+    }
+});
+
+connection.onExecuteCommand((e: ExecuteCommandParams) => {
+    if (e.command === 'deepscan.updateToken') {
+        token = e.arguments[0];
+    }
+});
+
+connection.onRequest('deepscan.getTokenInfo', async () => {
+    try {
+        const apiPath = `${deepscanServer}/api/vscode/tokeninfo`;
+        const response = await axios.get(apiPath, {
+            proxy: parseProxy(proxyServer),
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "user-agent": userAgent
+            },
+        });
+        return response.data.data;
+    } catch (err) {
+        let message = err?.response?.data?.reason || err.message;
+        return { error: message };
     }
 });
 
@@ -257,16 +275,31 @@ function parseProxy(proxyUrl) {
 }
 
 async function inspect(identifier: VersionedTextDocumentIdentifier) {
+    const guideUrl = `${deepscanServer}/docs/deepscan/vscode#token`;
+    const generateUrl = `${deepscanServer}/dashboard/#view=account-settings`;
+
     let uri = identifier.uri;
     let textDocument = documents.get(uri);
     let docContent = textDocument.getText();
 
-    const URL = `${deepscanServer}/api/demo`;
+    const URL = `${deepscanServer}/api/vscode/analysis`;
     const MAX_LINES = 10000;
     const MAX_CHARS = 500000;
 
     function sendDiagnostics(diagnostics) {
         connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+    }
+
+    if (!token) {
+        const message = `Failed to inspect: DeepScan access token not configured. Visit ${guideUrl} to generate a token.`;
+        connection.console.error(message);
+        sendDiagnostics([]);
+        connection.sendNotification(StatusNotification.type, {
+            state: Status.EMPTY_TOKEN,
+            message,
+            uri: null,
+        });
+        return;
     }
 
     if (docContent.trim() === '') {
@@ -311,6 +344,7 @@ async function inspect(identifier: VersionedTextDocumentIdentifier) {
         const response = await axios.post(URL, form, {
             proxy: parseProxy(proxyServer),
             headers: {
+                "Authorization": `Bearer ${token}`,
                 "user-agent": userAgent,
                 ...form.getHeaders(),
             },
@@ -331,12 +365,21 @@ async function inspect(identifier: VersionedTextDocumentIdentifier) {
             uri,
         });
     } catch (err) {
-        const message = err?.response?.data?.data?.reason || err.message;
-        connection.console.error(`Failed to inspect: ${message}`);
+        let message = err?.response?.data?.reason || err.message;
         // Clear problems
         sendDiagnostics([]);
+        let state: Status = Status.fail;
+        const isTokenMessage = message.includes('token');
+        if (isTokenMessage && message.includes('expired')) {
+            state = Status.EXPIRED_TOKEN;
+            message = `DeepScan access token has expired. Visit ${generateUrl} to regenerate the token.`;
+        } else if (isTokenMessage && message.includes('Invalid')) {
+            state = Status.INVALID_TOKEN;
+            message = `invalid DeepScan access token. Visit ${generateUrl} to regenerate the token and make sure to copy the correct token string.`;
+        }
+        connection.console.error(`Failed to inspect: ${message}`);
         connection.sendNotification(StatusNotification.type, {
-            state: Status.fail,
+            state,
             message,
             uri: null,
         });
@@ -385,8 +428,8 @@ function parseLocation(location) {
 }
 
 function detachSlash(path) {
-    var len = path.length;
-    if (path[len - 1] === '/') {
+    let len = path.length;
+    if (len && path[len - 1] === '/') {
         return path.substr(0, len - 1);
     } else {
         return path;

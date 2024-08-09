@@ -12,7 +12,7 @@
     },
     "icon": "deepscan_icon.png",
     "engines": {
-        "vscode": "^1.25.0"
+        "vscode": "^1.56.0"
     },
     "categories": [
         "Linters"
@@ -54,7 +54,7 @@
                 },
                 "deepscan.ignoreRules": {
                     "type": "array",
-                    "description": "Configures the rules to be ignored.",
+                    "description": "Configures the rules to be ignored. (Restart required)",
                     "items": {
                         "anyOf": [
                             {
@@ -65,7 +65,7 @@
                 },
                 "deepscan.ignorePatterns": {
                     "type": "array",
-                    "description": "Configures the files to be ignored.",
+                    "description": "Configures the files to be ignored. (Restart required)",
                     "items": {
                         "anyOf": [
                             {
@@ -125,6 +125,21 @@
                 "category": "DeepScan",
                 "command": "deepscan.clearProject",
                 "title": "Clear Project Problems"
+            },
+            {
+                "category": "DeepScan",
+                "command": "deepscan.setToken",
+                "title": "Configure Access Token"
+            },
+            {
+                "category": "DeepScan",
+                "command": "deepscan.deleteToken",
+                "title": "Delete Access Token"
+            },
+            {
+                "category": "DeepScan",
+                "command": "deepscan.showTokenInfo",
+                "title": "Show Access Token Info"
             }
         ]
     },
