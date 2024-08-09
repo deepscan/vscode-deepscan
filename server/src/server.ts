@@ -199,13 +199,16 @@ connection.onExecuteCommand((e: ExecuteCommandParams) => {
 connection.onRequest('deepscan.getTokenInfo', async () => {
     try {
         const apiPath = `${deepscanServer}/api/vscode/tokeninfo`;
-        const response = await axios.get(apiPath, {
-            proxy: parseProxy(proxyServer),
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "user-agent": userAgent
-            },
-        });
+        const response = await axios.post(apiPath,
+            { date: Date.now() }, // Dummy payload for ensuring a "Content-Type" field
+            {
+                proxy: parseProxy(proxyServer),
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "user-agent": userAgent
+                },
+            }
+        );
         return response.data.data;
     } catch (err) {
         let message = err?.response?.data?.reason || err.message;
