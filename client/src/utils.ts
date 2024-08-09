@@ -25,3 +25,41 @@ export function sendRequest(client: LanguageClient, command: string, successCall
         vscode.window.showErrorMessage('Failed to send a request. Please consider opening an issue with steps to reproduce.');
     });
 }
+
+export function updateTokenRequest(client: LanguageClient, newToken: string) {
+    const params: ExecuteCommandParams = {
+        command: 'deepscan.updateToken',
+        arguments: [ newToken ]
+    };
+
+    const successCallback = () => {
+        if (newToken) {
+            client.info('New DeepScan access token was configured.');
+        } else {
+            client.info('DeepScan access token was deleted.');
+        }
+    };
+    client.sendRequest(ExecuteCommandRequest.type, params).then(successCallback,
+        (error) => {
+            console.error('Server failed', error);
+            vscode.window.showErrorMessage('Failed to send a request for updating DeepScan access token. Please consider opening an issue with steps to reproduce.');
+        }
+    );
+}
+
+export function detachSlash(path: string): string {
+    let len = path.length;
+    if (path && path[len - 1] === '/') {
+        return path.substring(0, len - 1);
+    } else {
+        return path;
+    }
+}
+
+export function formatDate(timestamp: number): string {
+    const date = new Date(timestamp);
+    const yyyy = date.getFullYear();
+    const mm = `0${date.getMonth() + 1}`.slice(-2);
+    const dd = `0${date.getDate()}`.slice(-2);
+    return `${yyyy}-${mm}-${dd}`;
+}
