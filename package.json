@@ -5,6 +5,7 @@
     "version": "1.64.0",
     "author": "DeepScan",
     "publisher": "DeepScan",
+    "pricing": "Trial",
     "license": "MIT",
     "repository": {
         "type": "git",

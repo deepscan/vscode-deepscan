@@ -64,6 +64,7 @@ export class StatusBar {
             case Status.EMPTY_TOKEN:
             case Status.EXPIRED_TOKEN:
             case Status.INVALID_TOKEN:
+            case Status.SUSPENDED_TOKEN:
                 color = 'darkred';
                 tooltip = 'Inspection failed!';
                 break;

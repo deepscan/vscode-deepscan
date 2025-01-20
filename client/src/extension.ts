@@ -64,6 +64,9 @@ async function activateClient(context: vscode.ExtensionContext) {
             case Status.INVALID_TOKEN:
                 await deepscanToken.showInvalidTokenNotification(getServerUrl());
                 break;
+            case Status.SUSPENDED_TOKEN:
+                await deepscanToken.showSuspendedTokenNotification(getServerUrl());
+                break;
         }
     }
 
@@ -79,7 +82,7 @@ async function activateClient(context: vscode.ExtensionContext) {
     function showNotificationIfNeeded(params: StatusParams) {
         clearNotification();
 
-        if ([Status.fail, Status.EMPTY_TOKEN, Status.INVALID_TOKEN, Status.EXPIRED_TOKEN].includes(params.state)) {
+        if ([Status.fail, Status.EMPTY_TOKEN, Status.INVALID_TOKEN, Status.EXPIRED_TOKEN, Status.SUSPENDED_TOKEN].includes(params.state)) {
             let message = params.message;
             switch (params.state) {
                 case Status.EMPTY_TOKEN:
@@ -90,6 +93,9 @@ async function activateClient(context: vscode.ExtensionContext) {
                     break;
                 case Status.INVALID_TOKEN:
                     message = 'invalid access token';
+                    break;
+                case Status.SUSPENDED_TOKEN:
+                    message = 'suspended access token';
                     break;
             }
             statusBarMessage = vscode.window.setStatusBarMessage(`A problem occurred communicating with DeepScan server. (${message})`);
@@ -102,7 +108,8 @@ async function activateClient(context: vscode.ExtensionContext) {
     function updateStatusBar(editor: vscode.TextEditor): void {
         const isValidSuffix = editor && _.includes(getSupportedFileSuffixes(getDeepScanConfiguration()), path.extname(editor.document.fileName));
         const status = statusBar.getStatus();
-        const needToShowStatusbar = status === Status.fail || status === Status.EMPTY_TOKEN || status == Status.EXPIRED_TOKEN || status === Status.INVALID_TOKEN;
+        const needToShowStatusbar = status === Status.fail || status === Status.EMPTY_TOKEN || status == Status.EXPIRED_TOKEN
+            || status === Status.INVALID_TOKEN || status === Status.SUSPENDED_TOKEN;
         const show = serverRunning && (needToShowStatusbar || isValidSuffix);
         statusBar.show(show);
     }
@@ -243,7 +250,7 @@ async function activateClient(context: vscode.ExtensionContext) {
             updateStatus(state);
             showNotificationIfNeeded(params);
             activeDecorations.updateDecorations(uri);
-            if (state === Status.INVALID_TOKEN || state == Status.EXPIRED_TOKEN) {
+            if (state === Status.INVALID_TOKEN || state == Status.EXPIRED_TOKEN || state === Status.SUSPENDED_TOKEN) {
                 handleTokenNotification(params);
             }
         });
@@ -338,6 +345,7 @@ async function activateClient(context: vscode.ExtensionContext) {
                 return;
             }
             const Regenerate = 'Regenerate Token';
+            const GoToSite = 'Go to Site';
             const Close = 'Close';
             let message: string;
             let buttons: string[];
@@ -351,6 +359,9 @@ async function activateClient(context: vscode.ExtensionContext) {
                 if (error && error.includes('token') && error.includes('Invalid')) {
                     message = 'Your DeepScan access token is not valid.';
                     buttons = [Regenerate, Close];
+                } else if (error && error.includes('token') && error.includes('Suspended')) {
+                    message = 'Your DeepScan access token was suspended. Visit DeepScan site to check your plan in the team settings page..';
+                    buttons = [GoToSite, Close];
                 } else if (error) {
                     message = `Failed to retrieve token information. (${error})`;
                     buttons = [Close];
@@ -369,6 +380,8 @@ async function activateClient(context: vscode.ExtensionContext) {
             if (selected === Regenerate) {
                 const tokenRegenerateUrl = `${getServerUrl()}/dashboard/#view=account-settings`;
                 vscode.env.openExternal(vscode.Uri.parse(tokenRegenerateUrl));
+            } else if (selected === GoToSite) {
+                vscode.env.openExternal(vscode.Uri.parse(getServerUrl()));
             }
         }),
         vscode.commands.registerCommand(CommandIds.updateToken, async () => {

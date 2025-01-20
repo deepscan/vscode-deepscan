@@ -7,31 +7,22 @@
 
 DeepScan is a cutting-edge JavaScript code inspection tool that helps you to find bugs and quality issues more precisely by data-flow analysis. You can also use it for React and Vue.js because DeepScan delivers [React specialized rules](https://deepscan.io/docs/rules/#react) and [Vue.js specialized rules](https://deepscan.io/docs/rules/#vue).
 
-**Note 1:** File Transfer
->
-> To use this extension, you should confirm that your code is transferred to the DeepScan server for inspection when you save your changes.
-> You can confirm it by pressing the Confirm button that appears when restarting VS Code after the installation.
->
-> Note that your code is completely deleted from the server right after the inspection.
-
-**Note 2:** DeepScan Access Token
->
-> An access token is required for transferring code and receiving inspection results.
-> DeepScan server uses the token to provide reliable and prompt inspection of your code.
->
-> Follow [instructions](https://deepscan.io/docs/deepscan/vscode#token) at DeepScan site to generate an access token for free.
-
-**Note 3:** Limitation of Analysis
->
-> The analysis is only per the transferred file. Some rules requiring inter-module information, such as [REACT_MISMATCHED_TYPE_OF_PROP](https://deepscan.io/docs/rules/react-mismatched-type-of-prop), does not apply in this plugin. To fully make use of DeepScan, please check out [Embedded Mode](#embedded-mode).
+**Note**: DeepScan Lite plan or above is needed to use this extension. Visit [deepscan.io](https://deepscan.io/pricing) to gain access to a 14-day free trial.
 
 ![Navigation](client/resources/preview.png)
 
-## How it works
+## How It Works
 
 - Report issues in Problems panel when you open a `*.js`, `*.jsx`, `*.mjs`, `*.ts`, `*.tsx`, and `*.vue` file and save it.
 - Highlight issues in the code.
 - Show a rule description using a code action. When you click the light bulb of the issue, you can see the detailed description of the rule and grasp what's the problem.
+
+## File Transfer
+
+To use this extension, you should confirm that your code is transferred to the DeepScan server for inspection when you save your changes.
+You can confirm it by pressing the Confirm button that appears when restarting VS Code after the installation.
+
+Note that your code is completely deleted from the server right after the inspection.
 
 ## DeepScan Access Token
 
@@ -42,8 +33,6 @@ For managing access token, this extension contributes the following commands to 
 - **Configure Access Token**: register the token generated at the DeepScan site.
 - **Delete Access Token**: remove the currently registered token from VS Code. (The token at the server remains unaffected.)
 - **Show Access Token Info**: display the name and expiration date of the current token.
-
-**Note:** Access token is not needed in [Embedded Mode](#embedded-mode).
 
 ## Settings Options
 
@@ -97,35 +86,7 @@ By **Ignore this line** and **Ignore this rule** code actions, you can add an in
 
 Read more about it [here](https://deepscan.io/docs/get-started/disabling-rules/).
 
-## Embedded Mode
-
-**Note:** This is a premium feature.
->
-> DeepScan supports an embedded mode, which works standalone without DeepScan server. It works with the local language server so you can:
-> * never worry about transferring the code outside.
-> * analyze a whole project rather than a file.
->
-> To activate this, contact us at [support@deepscan.io](mailto:support@deepscan.io).
-
-In the embedded mode, this extension contributes the following commands to the Command Palette:
-
-- **Inspect Project**: inspect the current project.
-- **Clear Project Problems**: clear inspected problems.
-
-### ESLint Analysis
-Run ESLint. You can see the ESLint alarms with DeepScan's.
-
-[eslint package](https://www.npmjs.com/package/eslint) is required in the local or global. Note that `NODE_PATH` environment variable is necessary to load the `eslint` module installed in global.
-
-It directly uses the package so your custom configurations and plugins are applied as is.
-
-- `deepscan.serverEmbedded.eslint.enable`: enable/disable ESLint analysis.
-- `deepscan.serverEmbedded.eslint.merge`: option for how identical issues of DeepScan and ESLint are merged. (defaults to `deepscan`)
-  * `deepscan`: show only DeepScan issues.
-  * `eslint`: show only ESLint issues.
-  * `both`: show all issues as is.
-
-## Using behind a proxy
+## Using behind a Proxy
 
 To do an inspection, this extension requires a connection with the DeepScan server. But this connection cannot be established when you are behind a proxy.
 

@@ -19,7 +19,8 @@ export enum Status {
 
     EMPTY_TOKEN = 10,
     INVALID_TOKEN = 11,
-    EXPIRED_TOKEN = 12
+    EXPIRED_TOKEN = 12,
+    SUSPENDED_TOKEN = 13
 }
 
 // "severity" of client.diagnostics. Seems not to comply with the DiagnosticSeverity of language-server.
