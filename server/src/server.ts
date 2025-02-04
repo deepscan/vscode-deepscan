@@ -28,7 +28,8 @@ enum Status {
 
     EMPTY_TOKEN = 10,
     INVALID_TOKEN = 11,
-    EXPIRED_TOKEN = 12
+    EXPIRED_TOKEN = 12,
+    SUSPENDED_TOKEN = 13
 }
 
 interface StatusParams {
@@ -379,6 +380,9 @@ async function inspect(identifier: VersionedTextDocumentIdentifier) {
         } else if (isTokenMessage && message.includes('Invalid')) {
             state = Status.INVALID_TOKEN;
             message = `invalid DeepScan access token. Visit ${generateUrl} to regenerate the token and make sure to copy the correct token string.`;
+        } else if (isTokenMessage && message.includes('Suspended')) {
+            state = Status.SUSPENDED_TOKEN;
+            message = `DeepScan access token was suspended. Visit ${deepscanServer} to check your plan in the team settings page.`;
         }
         connection.console.error(`Failed to inspect: ${message}`);
         connection.sendNotification(StatusNotification.type, {
