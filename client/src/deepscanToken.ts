@@ -42,9 +42,7 @@ export class DeepscanToken {
 
     const generate = 'Generate Token';
     const neverShowAgain = 'Don\'t show again';
-    const message =
-      'An access token is required for using the DeepScan extension. ' +
-      'DeepScan server uses the token to provide reliable and prompt inspection of your code.';
+    const message = 'An access token is required for using the DeepScan extension.';
     const selected = await vscode.window.showWarningMessage(message, generate, neverShowAgain);
     if (selected === generate) {
       const tokenGuideUrl = `${serverUrl}/docs/deepscan/vscode#token`;
@@ -70,6 +68,15 @@ export class DeepscanToken {
     if (selected === regenerate) {
       const tokenRegenerateUrl = `${serverUrl}/dashboard/#view=account-settings`;
       vscode.env.openExternal(vscode.Uri.parse(tokenRegenerateUrl));
+    }
+  }
+
+  async showSuspendedTokenNotification(serverUrl: string) {
+    const goToSite = 'Go to Site';
+    const message = `Your DeepScan access token was suspended. Visit DeepScan site to check your plan in the team settings page.`;
+    const selected = await vscode.window.showErrorMessage(message, goToSite);
+    if (selected === goToSite) {
+      vscode.env.openExternal(vscode.Uri.parse(serverUrl));
     }
   }
 }
