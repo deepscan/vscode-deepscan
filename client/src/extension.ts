@@ -360,7 +360,7 @@ async function activateClient(context: vscode.ExtensionContext) {
                     message = 'Your DeepScan access token is not valid.';
                     buttons = [Regenerate, Close];
                 } else if (error && error.includes('token') && error.includes('Suspended')) {
-                    message = 'Your DeepScan access token was suspended. Visit DeepScan site to check your plan in the team settings page..';
+                    message = 'Your DeepScan access token was suspended. Visit DeepScan site to check your plan in the team settings page.';
                     buttons = [GoToSite, Close];
                 } else if (error) {
                     message = `Failed to retrieve token information. (${error})`;
