@@ -49,7 +49,7 @@ export class StatusBar {
     }
 
     update(status: Status) {
-        let tooltip = this.getTooltip();
+        let tooltip = this.getTooltip() as string;
         let color = '';
         switch (status) {
             case Status.ok:
