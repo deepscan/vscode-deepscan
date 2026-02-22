@@ -16,7 +16,7 @@
     },
     "dependencies": {
         "axios": "^0.21.2",
-        "form-data": "^3.0.0",
+        "form-data": "^3.0.4",
         "lodash": "^4.17.21",
         "ignore": "^5.1.5",
         "vscode-languageserver": "^5.0.3"
