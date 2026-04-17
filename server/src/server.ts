@@ -265,6 +265,7 @@ function parseProxy(proxyUrl) {
     if (!proxyUrl) return null;
     const url = new URL(proxyUrl);
     const proxySetting = {
+        protocol: url.protocol,
         host: url.hostname,
         port: url.port,
         auth: null
