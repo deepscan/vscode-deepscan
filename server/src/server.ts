@@ -6,6 +6,8 @@
 
 import * as _ from 'lodash';
 import ignore from 'ignore';
+import { getProxyForUrl } from 'proxy-from-env';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 
 import {
     createConnection, IConnection,
@@ -19,6 +21,39 @@ import { URL } from 'url';
 const path = require('path');
 const axios = require('axios').default;
 const FormData = require('form-data');
+
+let cachedHttpsAgent: HttpsProxyAgent<string> | null = null;
+let lastProxyUrl: string | null = null;
+
+function getHttpsProxyAgent(proxyUrl: string): HttpsProxyAgent<string> {
+    if (cachedHttpsAgent && lastProxyUrl === proxyUrl) {
+        return cachedHttpsAgent;
+    }
+    cachedHttpsAgent = new HttpsProxyAgent(proxyUrl);
+    lastProxyUrl = proxyUrl;
+    return cachedHttpsAgent;
+}
+
+function getAxiosConfig(targetUrl: string, extraHeaders: any = {}) {
+    const proxyUrl = proxyServer || getProxyForUrl(targetUrl);
+    const config: any = {
+        headers: {
+            "Authorization": `Bearer ${token}`,
+            "user-agent": userAgent,
+            ...extraHeaders
+        }
+    };
+    if (proxyUrl) {
+        const parsedTargetUrl = new URL(targetUrl);
+        if (parsedTargetUrl.protocol === 'https:') {
+            config.proxy = false;
+            config.httpsAgent = getHttpsProxyAgent(proxyUrl);
+        } else {
+            config.proxy = parseProxy(proxyUrl);
+        }
+    }
+    return config;
+}
 
 enum Status {
     none = 0,
@@ -178,6 +213,8 @@ connection.onDidChangeConfiguration((params) => {
 
     if (!_.isEqual(proxyServer, settings.deepscan.proxy)) {
         proxyServer = settings.deepscan.proxy;
+        cachedHttpsAgent = null;
+        lastProxyUrl = null;
         changed = true;
     }
 
@@ -202,13 +239,7 @@ connection.onRequest('deepscan.getTokenInfo', async () => {
         const apiPath = `${deepscanServer}/api/vscode/tokeninfo`;
         const response = await axios.post(apiPath,
             { date: Date.now() }, // Dummy payload for ensuring a "Content-Type" field
-            {
-                proxy: parseProxy(proxyServer),
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "user-agent": userAgent
-                },
-            }
+            getAxiosConfig(apiPath)
         );
         return response.data.data;
     } catch (err) {
@@ -347,12 +378,7 @@ async function inspect(identifier: VersionedTextDocumentIdentifier) {
             contentType: "text/plain",
         });
         const response = await axios.post(URL, form, {
-            proxy: parseProxy(proxyServer),
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "user-agent": userAgent,
-                ...form.getHeaders(),
-            },
+            ...getAxiosConfig(URL, form.getHeaders())
         });
         let diagnostics: Diagnostic[] = getResult(response.data.data);
 
