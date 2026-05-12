@@ -201,7 +201,9 @@ connection.onInitialize((params) => {
 });
 
 connection.onShutdown(() => {
-    cachedHttpsAgent.destroy();
+    if (cachedHttpsAgent) {
+        cachedHttpsAgent.destroy();
+    }
 });
 
 // Note that it may not be triggered when the workspace in on Samba filesystem.
