@@ -74,19 +74,24 @@ async function activateClient(context: vscode.ExtensionContext) {
         if (context.globalState.get('isCertificateErrorWarningDisabled') === true) {
             return;
         }
+        const configuration = getDeepScanConfiguration();
+        const useProxy = configuration.get('proxy') || process.env.HTTPS_PROXY || process.env.HTTP_PROXY ||
+            process.env.https_proxy || process.env.http_proxy;
+        if (!useProxy) {
+            return;
+        }
         const message = params.message || '';
         const isCertificateError = message.toLowerCase().includes('certificate');
-        if (!isCertificateError) {
+        const useCustomCertificate = !!process.env.NODE_EXTRA_CA_CERTS;
+        if (!isCertificateError || !useCustomCertificate) {
             return;
         }
         const [major, minor] = vscode.version.split('.').map(v => parseInt(v, 10));
         const isSupportedVersion = major > 1 || (major === 1 && minor >= 92);
-
         let warningMessage: string;
         if (!isSupportedVersion) {
             warningMessage = 'A certificate error occurred. To properly use custom certificates ' +
                 'in a proxy environment, please update VS Code to version 1.92 or higher.';
-
         } else {
             warningMessage = 'A certificate error occurred. Please check your proxy settings or ensure the ' +
                 '\'NODE_EXTRA_CA_CERTS\' environment variable is correctly configured.';
@@ -282,9 +287,7 @@ async function activateClient(context: vscode.ExtensionContext) {
             if (state === Status.INVALID_TOKEN || state == Status.EXPIRED_TOKEN || state === Status.SUSPENDED_TOKEN) {
                 handleTokenNotification(params);
             } else if (state === Status.fail) {
-                const configuration = getDeepScanConfiguration();
-                const proxy = configuration.get('proxy');
-                proxy && handleProxyError(params);
+                handleProxyError(params);
             }
         });
 

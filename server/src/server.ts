@@ -200,6 +200,10 @@ connection.onInitialize((params) => {
     };
 });
 
+connection.onShutdown(() => {
+    cachedHttpsAgent.destroy();
+});
+
 // Note that it may not be triggered when the workspace in on Samba filesystem.
 connection.onDidChangeConfiguration((params) => {
     settings = params.settings || {};
