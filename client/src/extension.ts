@@ -70,10 +70,7 @@ async function activateClient(context: vscode.ExtensionContext) {
         }
     }
 
-    async function handleProxyError(params: StatusParams) {
-        if (context.globalState.get('isCertificateErrorWarningDisabled') === true) {
-            return;
-        }
+    async function checkProxyError(params: StatusParams) {
         const configuration = getDeepScanConfiguration();
         const useProxy = configuration.get('proxy') || process.env.HTTPS_PROXY || process.env.HTTP_PROXY ||
             process.env.https_proxy || process.env.http_proxy;
@@ -82,25 +79,29 @@ async function activateClient(context: vscode.ExtensionContext) {
         }
         const message = params.message || '';
         const isCertificateError = message.toLowerCase().includes('certificate');
-        const useCustomCertificate = !!process.env.NODE_EXTRA_CA_CERTS;
-        if (!isCertificateError || !useCustomCertificate) {
+        if (!isCertificateError) {
             return;
         }
-        const [major, minor] = vscode.version.split('.').map(v => parseInt(v, 10));
-        const isSupportedVersion = major > 1 || (major === 1 && minor >= 92);
+
         let warningMessage: string;
-        if (!isSupportedVersion) {
-            warningMessage = 'A certificate error occurred. To properly use custom certificates ' +
-                'in a proxy environment, please update VS Code to version 1.92 or higher.';
-        } else {
-            warningMessage = 'A certificate error occurred. Please check your proxy settings or ensure the ' +
-                '\'NODE_EXTRA_CA_CERTS\' environment variable is correctly configured.';
+        const useCustomCertificate = !!process.env.NODE_EXTRA_CA_CERTS;
+        if (!useCustomCertificate && !context.globalState.get('isMissingCertEnvWarningDisabled')) {
+            warningMessage = "Please configure the 'NODE_EXTRA_CA_CERTS' environment variable with your custom CA certificate path.";
+            context.globalState.update('isMissingCertEnvWarningDisabled', true);
         }
-        const neverShowAgain = 'Don\'t show again';
-        const confirm = 'Confirm';
-        const selected = await vscode.window.showErrorMessage(warningMessage, neverShowAgain, confirm);
-        if (selected === neverShowAgain) {
-            context.globalState.update('isCertificateErrorWarningDisabled', true);
+        if (useCustomCertificate && !context.globalState.get('isOutdatedVscodeCertWarningDisabled')) {
+            const [major, minor] = vscode.version.split('.').map(Number);
+            const isSupportedVersion = major > 1 || (major === 1 && minor >= 92);
+
+            if (!isSupportedVersion) {
+                warningMessage = "To properly use 'NODE_EXTRA_CA_CERTS' in a proxy environment, please update VS Code to version 1.92 or higher.";
+                context.globalState.update('isOutdatedVscodeCertWarningDisabled', true);
+            }
+        }
+        if (warningMessage) {
+            client.error(warningMessage);
+            const dismiss = 'Dismiss';
+            await vscode.window.showErrorMessage(warningMessage, dismiss);
         }
     }
 
@@ -173,6 +174,12 @@ async function activateClient(context: vscode.ExtensionContext) {
             if (selected === reload) {
                 vscode.commands.executeCommand('workbench.action.reloadWindow');
             }
+        }
+        const isServerOrProxyChanged = isConfigurationChanged('server', oldConfig, newConfig) ||
+                        isConfigurationChanged('proxy', oldConfig, newConfig);
+        if (isServerOrProxyChanged) {
+            context.globalState.update('isMissingCertEnvWarningDisabled', false);
+            context.globalState.update('isOutdatedVscodeCertWarningDisabled', false);
         }
     }
 
@@ -278,6 +285,8 @@ async function activateClient(context: vscode.ExtensionContext) {
 
         activeDecorations = activateDecorations(client);
         context.subscriptions.push(activeDecorations.disposables);
+        context.globalState.update('isMissingCertEnvWarningDisabled', false);
+        context.globalState.update('isOutdatedVscodeCertWarningDisabled', false);
 
         client.onNotification(StatusNotification.type, (params) => {
             const { state, uri } = params;
@@ -287,7 +296,7 @@ async function activateClient(context: vscode.ExtensionContext) {
             if (state === Status.INVALID_TOKEN || state == Status.EXPIRED_TOKEN || state === Status.SUSPENDED_TOKEN) {
                 handleTokenNotification(params);
             } else if (state === Status.fail) {
-                handleProxyError(params);
+                checkProxyError(params);
             }
         });
 

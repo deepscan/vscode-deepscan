@@ -23,19 +23,16 @@ const axios = require('axios').default;
 const FormData = require('form-data');
 
 let cachedHttpsAgent: HttpsProxyAgent<string> | null = null;
-let lastProxyUrl: string | null = null;
 
 function getHttpsProxyAgent(proxyUrl: string): HttpsProxyAgent<string> {
-    if (cachedHttpsAgent && lastProxyUrl === proxyUrl) {
+    if (cachedHttpsAgent) {
         return cachedHttpsAgent;
     }
     cachedHttpsAgent = new HttpsProxyAgent(proxyUrl);
-    lastProxyUrl = proxyUrl;
     return cachedHttpsAgent;
 }
 
 function getAxiosConfig(targetUrl: string, extraHeaders: any = {}) {
-    const proxyUrl = proxyServer || getProxyForUrl(targetUrl);
     const config: any = {
         headers: {
             "Authorization": `Bearer ${token}`,
@@ -43,14 +40,16 @@ function getAxiosConfig(targetUrl: string, extraHeaders: any = {}) {
             ...extraHeaders
         }
     };
-    if (proxyUrl) {
+    if (proxyServer) {
         const parsedTargetUrl = new URL(targetUrl);
         if (parsedTargetUrl.protocol === 'https:') {
             config.proxy = false;
-            config.httpsAgent = getHttpsProxyAgent(proxyUrl);
+            config.httpsAgent = getHttpsProxyAgent(proxyServer);
         } else {
-            config.proxy = parseProxy(proxyUrl);
+            config.proxy = parseProxy(proxyServer);
         }
+    } else {
+        config.proxy = false;
     }
     return config;
 }
@@ -177,7 +176,7 @@ connection.onInitialize((params) => {
         userAgent: string;
     } = params.initializationOptions;
     deepscanServer = getServerUrl(initOptions.server);
-    proxyServer = initOptions.proxy;
+    proxyServer = initOptions.proxy || getProxyForUrl(deepscanServer);
     token = initOptions.token;
 
     DEFAULT_FILE_SUFFIXES = initOptions.DEFAULT_FILE_SUFFIXES;
@@ -211,10 +210,10 @@ connection.onDidChangeConfiguration((params) => {
         changed = true;
     }
 
-    if (!_.isEqual(proxyServer, settings.deepscan.proxy)) {
-        proxyServer = settings.deepscan.proxy;
+    const newProxyServer = settings.deepscan.proxy || getProxyForUrl(deepscanServer);
+    if (!_.isEqual(proxyServer, newProxyServer)) {
+        proxyServer = newProxyServer;
         cachedHttpsAgent = null;
-        lastProxyUrl = null;
         changed = true;
     }
 
@@ -377,9 +376,7 @@ async function inspect(identifier: VersionedTextDocumentIdentifier) {
             filename,
             contentType: "text/plain",
         });
-        const response = await axios.post(URL, form, {
-            ...getAxiosConfig(URL, form.getHeaders())
-        });
+        const response = await axios.post(URL, form, getAxiosConfig(URL, form.getHeaders()));
         let diagnostics: Diagnostic[] = getResult(response.data.data);
 
         if (Array.isArray(settings.deepscan.ignoreRules)) {
