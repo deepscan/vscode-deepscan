@@ -84,22 +84,30 @@ async function activateClient(context: vscode.ExtensionContext) {
         }
 
         let warningMessage: string;
+        let consoleMessage = message.trim().endsWith('.') ? message : `${message}.`;
         const useCustomCertificate = !!process.env.NODE_EXTRA_CA_CERTS;
-        if (!useCustomCertificate && !context.globalState.get('isMissingCertEnvWarningDisabled')) {
-            warningMessage = "Please configure the 'NODE_EXTRA_CA_CERTS' environment variable with your custom CA certificate path.";
-            context.globalState.update('isMissingCertEnvWarningDisabled', true);
+        if (!useCustomCertificate) {
+            if (!isMissingCertEnvWarningDisabled) {
+                warningMessage = "Please configure the 'NODE_EXTRA_CA_CERTS' environment variable with your custom CA certificate path.";
+                isMissingCertEnvWarningDisabled = true;
+            }
+            consoleMessage = `Failed to inspect: ${consoleMessage} Consider setting NODE_EXTRA_CA_CERTS environment variable.`;
+            client.error(consoleMessage);
         }
-        if (useCustomCertificate && !context.globalState.get('isOutdatedVscodeCertWarningDisabled')) {
+        if (useCustomCertificate) {
             const [major, minor] = vscode.version.split('.').map(Number);
             const isSupportedVersion = major > 1 || (major === 1 && minor >= 92);
 
             if (!isSupportedVersion) {
-                warningMessage = "To properly use 'NODE_EXTRA_CA_CERTS' in a proxy environment, please update VS Code to version 1.92 or higher.";
-                context.globalState.update('isOutdatedVscodeCertWarningDisabled', true);
+                if (!isOutdatedVscodeCertWarningDisabled) {
+                    warningMessage = "To properly use 'NODE_EXTRA_CA_CERTS' in a proxy environment, please update VS Code yto version 1.92 or higher.";
+                    isOutdatedVscodeCertWarningDisabled = true;
+                }
+                consoleMessage = `Failed to inspect: ${consoleMessage} Consider updating VS Code to version 1.92 or higher.`;
+                client.error(consoleMessage);
             }
         }
         if (warningMessage) {
-            client.error(warningMessage);
             const dismiss = 'Dismiss';
             await vscode.window.showErrorMessage(warningMessage, dismiss);
         }
@@ -178,8 +186,8 @@ async function activateClient(context: vscode.ExtensionContext) {
         const isServerOrProxyChanged = isConfigurationChanged('server', oldConfig, newConfig) ||
                         isConfigurationChanged('proxy', oldConfig, newConfig);
         if (isServerOrProxyChanged) {
-            context.globalState.update('isMissingCertEnvWarningDisabled', false);
-            context.globalState.update('isOutdatedVscodeCertWarningDisabled', false);
+            isMissingCertEnvWarningDisabled = false;
+            isOutdatedVscodeCertWarningDisabled = false;
         }
     }
 
@@ -217,6 +225,8 @@ async function activateClient(context: vscode.ExtensionContext) {
     let staticDocumentsForDisablingRules: DocumentSelector = _.filter(staticDocuments, ({ pattern }) => pattern !== '**/*.vue');
 
     let activeDecorations;
+    let isMissingCertEnvWarningDisabled = false;
+    let isOutdatedVscodeCertWarningDisabled = false;
 
     const deepscanToken = new DeepscanToken(context);
     const token = await deepscanToken.getToken();
@@ -285,8 +295,8 @@ async function activateClient(context: vscode.ExtensionContext) {
 
         activeDecorations = activateDecorations(client);
         context.subscriptions.push(activeDecorations.disposables);
-        context.globalState.update('isMissingCertEnvWarningDisabled', false);
-        context.globalState.update('isOutdatedVscodeCertWarningDisabled', false);
+        isMissingCertEnvWarningDisabled = false;
+        isOutdatedVscodeCertWarningDisabled = false;
 
         client.onNotification(StatusNotification.type, (params) => {
             const { state, uri } = params;

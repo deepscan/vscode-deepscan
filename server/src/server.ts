@@ -408,7 +408,9 @@ async function inspect(identifier: VersionedTextDocumentIdentifier) {
             state = Status.SUSPENDED_TOKEN;
             message = `DeepScan access token was suspended. Visit ${deepscanServer} to check your plan in the team settings page.`;
         }
-        connection.console.error(`Failed to inspect: ${message}`);
+        if (!message.toLowerCase().includes('certificate')) {
+            connection.console.error(`Failed to inspect: ${message}`);
+        }
         connection.sendNotification(StatusNotification.type, {
             state,
             message,

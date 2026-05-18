@@ -46,7 +46,7 @@
                 },
                 "deepscan.proxy": {
                     "type": "string",
-                    "description": "Configures the proxy. If not set will be taken from the http_proxy environment variable."
+                    "description": "Configures the proxy url. If not set, it will be taken from the https_proxy environment variable. If your proxy requires a custom CA certificate, please set the NODE_EXTRA_CA_CERTS environment variable."
                 },
                 "deepscan.ignoreConfirmWarning": {
                     "type": "boolean",

@@ -91,5 +91,7 @@ To do an inspection, this extension requires a connection with the DeepScan serv
 
 For this case, you can try one of the following:
 
-* Set `http_proxy` environment variable: `http_proxy` [is respected](https://www.npmjs.com/package/axios#request-config), if any.
-* Set `deepscan.proxy` option: When you do not have/want a system-wide `http_proxy` environment variable, you can set the proxy server's URL in the `deepscan.proxy` option.
+* Configure `https_proxy` environment variable.
+* Configure the `deepscan.proxy` option in your VS Code settings with your proxy server url.
+
+If your proxy environment uses a custom CA certificate, you will need to configure the `NODE_EXTRA_CA_CERTS` environment variable with your custom CA certificate path.
