@@ -91,7 +91,7 @@ To do an inspection, this extension requires a connection with the DeepScan serv
 
 For this case, you can try one of the following:
 
-* Configure `https_proxy` environment variable.
-* Configure the `deepscan.proxy` option in your VS Code settings with your proxy server url.
+* Configure the `https_proxy` environment variable.
+* Configure the `deepscan.proxy` option in the VS Code settings.
 
-If your proxy environment uses a custom CA certificate, you will need to configure the `NODE_EXTRA_CA_CERTS` environment variable with your custom CA certificate path.
+If your proxy environment uses a custom CA certificate, you will need to configure the `NODE_EXTRA_CA_CERTS` environment with the certificate path.
