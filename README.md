@@ -94,4 +94,4 @@ For this case, you can try one of the following:
 * Configure the `https_proxy` environment variable.
 * Configure the `deepscan.proxy` option in the VS Code settings.
 
-If your proxy environment uses a custom CA certificate, you will need to configure the `NODE_EXTRA_CA_CERTS` environment with the certificate path.
+If your proxy environment uses a custom CA certificate, you will need to configure the `NODE_EXTRA_CA_CERTS` environment variable with the certificate path.
