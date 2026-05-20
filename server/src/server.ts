@@ -131,6 +131,26 @@ let ignorePatterns: string[] = null;
 let DEFAULT_FILE_SUFFIXES: string[] = null;
 let fileSuffixes: string[] = null;
 
+let requestCount: number = 0;
+let windowStart: number = Date.now();
+let hasLoggedErrorInCurrentWindow: boolean = false;
+const DEEPSCAN_WINDOW_SIZE_MS: number = 60 * 1000;
+const DEEPSCAN_MAX_REQUESTS: number = 35;
+
+function canMakeRequest(): boolean {
+    const now = Date.now();
+    if (now - windowStart >= DEEPSCAN_WINDOW_SIZE_MS) {
+        windowStart = now;
+        requestCount = 0;
+        hasLoggedErrorInCurrentWindow = false;
+    }
+    if (requestCount >= DEEPSCAN_MAX_REQUESTS) {
+        return false;
+    }
+    requestCount++;
+    return true;
+}
+
 function supportsLanguage(document: TextDocument): boolean {
     return _.includes(supportedFileSuffixes, path.extname(document.uri));
 }
@@ -323,6 +343,21 @@ async function inspect(identifier: VersionedTextDocumentIdentifier) {
 
     function sendDiagnostics(diagnostics) {
         connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+    }
+
+    if (!canMakeRequest()) {
+        const message = 'Too many requests, please try again later.';
+        if (!hasLoggedErrorInCurrentWindow) {
+            hasLoggedErrorInCurrentWindow = true;
+            connection.console.error(message);
+        }
+        sendDiagnostics([]);
+        connection.sendNotification(StatusNotification.type, {
+            state: Status.fail,
+            message,
+            uri: null,
+        });
+        return;
     }
 
     if (!token) {
