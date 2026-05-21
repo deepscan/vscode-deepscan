@@ -135,7 +135,7 @@ let requestCount: number = 0;
 let windowStart: number = Date.now();
 let hasLoggedErrorInCurrentWindow: boolean = false;
 const DEEPSCAN_WINDOW_SIZE_MS: number = 60 * 1000;
-const DEEPSCAN_MAX_REQUESTS: number = 35;
+const DEEPSCAN_MAX_REQUESTS: number = 15;
 
 function canMakeRequest(): boolean {
     const now = Date.now();
