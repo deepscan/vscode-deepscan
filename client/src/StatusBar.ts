@@ -18,6 +18,10 @@ export class StatusBar {
     
         this.statusBarItem.text = 'DeepScan';
         this.statusBarItem.command = CommandIds.showOutput;
+
+        vscode.window.onDidChangeActiveColorTheme(() => {
+            this.update(this.status);
+        });
     }
 
     getStatusBarItem() {
@@ -51,13 +55,14 @@ export class StatusBar {
     update(status: Status) {
         let tooltip = this.getTooltip() as string;
         let color = '';
+        const isDarkTheme = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark;
         switch (status) {
             case Status.ok:
-                color = 'lightgreen';
+                color = isDarkTheme? 'lightgreen' : 'darkgreen';
                 tooltip = 'Issue-free!';
                 break;
             case Status.warn:
-                color = 'yellow';
+                color = isDarkTheme? 'yellow' : '#BA8E23';
                 tooltip = 'Issue(s) detected!';
                 break;
             case Status.fail:
