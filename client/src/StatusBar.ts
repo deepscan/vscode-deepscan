@@ -55,7 +55,8 @@ export class StatusBar {
     update(status: Status) {
         let tooltip = this.getTooltip() as string;
         let color = '';
-        const isDarkTheme = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark;
+        const isDarkTheme = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ||
+            vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.HighContrast;
         switch (status) {
             case Status.ok:
                 color = isDarkTheme? 'lightgreen' : 'darkgreen';
