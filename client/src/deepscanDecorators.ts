@@ -38,9 +38,10 @@ export function activateDecorations(client: LanguageClient) {
 
     window.onDidChangeActiveTextEditor(editor => {
         activeEditor = editor;
-        if (editor) {
-            triggerReviveDecorations();
+        if (!editor || editor.document.isDirty) {
+            return;
         }
+        triggerReviveDecorations();
     }, null, disposables);
 
     workspace.onDidChangeConfiguration(() => {

@@ -16,6 +16,7 @@ export enum Status {
     ok = 1, // No alarm
     warn = 2, // Any alarm regardless of impact
     fail = 3, // Analysis failed
+    limit_exceeded = 4,
 
     EMPTY_TOKEN = 10,
     INVALID_TOKEN = 11,

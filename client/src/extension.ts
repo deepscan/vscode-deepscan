@@ -39,6 +39,7 @@ const DIAGNOSTIC_SOURCE_NAME = 'deepscan';
 let oldConfig;
 
 const exitCalled = new NotificationType<[number, string], void>('deepscan/exitCalled');
+const trackDocumentNotification = new NotificationType<{ uri: string }, void>('deepscan/trackDocument');
 
 let client: LanguageClient = null;
 
@@ -116,6 +117,11 @@ async function activateClient(context: vscode.ExtensionContext) {
             const dismiss = 'Dismiss';
             await vscode.window.showErrorMessage(warningMessage, dismiss);
         }
+    }
+
+    function isSupportedFile(fileName: string): boolean {
+        const ext = path.extname(fileName);
+        return _.includes(getSupportedFileSuffixes(getDeepScanConfiguration()), ext);
     }
 
     function updateStatus(status: Status) {
@@ -207,8 +213,14 @@ async function activateClient(context: vscode.ExtensionContext) {
 
     const statusBar = new StatusBar();
     let serverRunning: boolean = false;
-
-    vscode.window.onDidChangeActiveTextEditor(updateStatusBar);
+    context.subscriptions.push(
+        vscode.window.onDidChangeActiveTextEditor((editor) => {
+            updateStatusBar(editor);
+            if (!isEmbedded() && isSupportedFile(editor.document.fileName)) {
+                client.sendNotification(trackDocumentNotification, { uri: editor.document.uri.toString() });
+            }
+        })
+    );
     updateStatusBar(vscode.window.activeTextEditor);
 
     const configuration = oldConfig = getDeepScanConfiguration();
@@ -302,6 +314,12 @@ async function activateClient(context: vscode.ExtensionContext) {
 
         activeDecorations = activateDecorations(client);
         context.subscriptions.push(activeDecorations.disposables);
+
+        vscode.window.visibleTextEditors.forEach((editor) => {
+            if (!isEmbedded() && isSupportedFile(editor.document.fileName)) {
+                client.sendNotification(trackDocumentNotification, { uri: editor.document.uri.toString() });
+            }
+        });
 
         client.onNotification(StatusNotification.type, (params) => {
             const { state, uri } = params;
