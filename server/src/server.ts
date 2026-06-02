@@ -189,7 +189,6 @@ connection.onNotification('deepscan/trackDocument', (params: { uri: string }) =>
     if (isNewDocument) {
         const textDocument = documents.get(params.uri);
         if (textDocument && supportsLanguage(textDocument)) {
-            connection.console.info(`SERVER: New document tracked via notification. Trigger inspection: ${params.uri}`);
             inspect(textDocument, false);
         }
     }
@@ -200,9 +199,6 @@ documents.onDidOpen((event) => {
         return;
     }
     const isDuplicateInspection = trackedDocuments.has(event.document.uri);
-    if (isDuplicateInspection) {
-        connection.console.warn(`SERVER: Anomalous duplicate open detected for ${event.document.uri}`);
-    }
     inspect(event.document, isDuplicateInspection);
 });
 
