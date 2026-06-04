@@ -371,10 +371,8 @@ function parseProxy(proxyUrl) {
 
 function sendLimitExceededNotification() {
     const message = 'Failed to inspect: Too many requests, please try again later.';
-    if (!hasLoggedErrorInCurrentWindow) {
-        hasLoggedErrorInCurrentWindow = true;
-        connection.console.error(message);
-    }
+    hasLoggedErrorInCurrentWindow = true;
+    connection.console.error(message);
     connection.sendNotification(StatusNotification.type, {
         state: Status.limit_exceeded,
         message,
@@ -444,7 +442,10 @@ async function inspect(identifier: VersionedTextDocumentIdentifier, isDuplicateI
     }
 
     if (!canMakeRequest(uri)) {
-        return sendLimitExceededNotification();
+        if (!hasLoggedErrorInCurrentWindow) {
+            sendLimitExceededNotification();
+        }
+        return;
     }
 
     // Send filename with extension to parse correctly in server.
@@ -482,7 +483,12 @@ async function inspect(identifier: VersionedTextDocumentIdentifier, isDuplicateI
         let message = err?.response?.data?.reason || err.message;
         let state: Status = Status.fail;
         if (message.includes('Too many requests')) {
-            return sendLimitExceededNotification();
+            if (!canMakeRequest(uri)) {
+                if (!hasLoggedErrorInCurrentWindow) {
+                    sendLimitExceededNotification();
+                }
+                return;
+            }
         }
         // Clear problems
         sendDiagnostics([]);

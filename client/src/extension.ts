@@ -325,9 +325,7 @@ async function activateClient(context: vscode.ExtensionContext) {
             const { state, uri } = params;
             updateStatus(state);
             showNotificationIfNeeded(params);
-            if (state !== Status.limit_exceeded) {
-                activeDecorations.updateDecorations(uri);
-            }
+            activeDecorations.updateDecorations(uri, state);
             if (state === Status.INVALID_TOKEN || state == Status.EXPIRED_TOKEN || state === Status.SUSPENDED_TOKEN) {
                 handleTokenNotification(params);
             } else if (state === Status.fail) {
