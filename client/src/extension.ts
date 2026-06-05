@@ -216,7 +216,7 @@ async function activateClient(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.window.onDidChangeActiveTextEditor((editor) => {
             updateStatusBar(editor);
-            if (!isEmbedded() && isSupportedFile(editor.document.fileName)) {
+            if (!isEmbedded() && editor && isSupportedFile(editor.document.fileName)) {
                 client.sendNotification(trackDocumentNotification, { uri: editor.document.uri.toString() });
             }
         })

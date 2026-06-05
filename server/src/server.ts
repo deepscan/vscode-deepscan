@@ -139,11 +139,25 @@ const DEEPSCAN_WINDOW_SIZE_MS: number = 60 * 1000;
 const DEEPSCAN_MAX_REQUESTS: number = 45;
 
 let trackedDocuments: Set<string> = new Set<string>();
-let lowFreqCounter: number = 0;
-let lowFreqWindowStart: number = Date.now();
-const LOW_FREQ_LIMIT_PER_SEC = 2;
+let untrackedSkipCounter: number = 0;
+let untrackedSkipWindowStart: number = Date.now();
 
-function canMakeRequest(uri: string): boolean {
+function checkTrackedDocument(uri: string): boolean {
+    const now = Date.now();
+    if (now - untrackedSkipWindowStart >= 1000) {
+        untrackedSkipWindowStart = now;
+        untrackedSkipCounter = 0;
+    }
+
+    if (untrackedSkipCounter < 2) {
+        untrackedSkipCounter++;
+        trackedDocuments.add(uri);
+        return true;
+    }
+    return trackedDocuments.has(uri);
+}
+
+function checkRateLimit(): boolean {
     const now = Date.now();
     if (now - windowStart >= DEEPSCAN_WINDOW_SIZE_MS) {
         windowStart = now;
@@ -153,25 +167,8 @@ function canMakeRequest(uri: string): boolean {
     if (requestCount >= DEEPSCAN_MAX_REQUESTS) {
         return false;
     }
-
-    if (now - lowFreqWindowStart >= 1000) {
-        lowFreqWindowStart = now;
-        lowFreqCounter = 0;
-    }
-    lowFreqCounter++;
-
-    if (lowFreqCounter <= LOW_FREQ_LIMIT_PER_SEC) {
-        trackedDocuments.add(uri);
-        requestCount++;
-        return true;
-    }
-
-    if (trackedDocuments.has(uri)) {
-        requestCount++;
-        return true;
-    }
-
-    return false;
+    requestCount++;
+    return true;
 }
 
 function supportsLanguage(document: TextDocument): boolean {
@@ -184,13 +181,13 @@ documents.listen(connection);
 
 connection.onNotification('deepscan/trackDocument', (params: { uri: string }) => {
     const isNewDocument = !trackedDocuments.has(params.uri);
+    if (!isNewDocument) {
+        return;
+    }
     trackedDocuments.add(params.uri);
-
-    if (isNewDocument) {
-        const textDocument = documents.get(params.uri);
-        if (textDocument && supportsLanguage(textDocument)) {
-            inspect(textDocument, false);
-        }
+    const textDocument = documents.get(params.uri);
+    if (textDocument && supportsLanguage(textDocument)) {
+        inspect(textDocument, false);
     }
 });
 
@@ -387,7 +384,6 @@ async function inspect(identifier: VersionedTextDocumentIdentifier, isDuplicateI
     let uri = identifier.uri;
     let textDocument = documents.get(uri);
     if (!textDocument) {
-        sendDiagnostics([]);
         return;
     }
 
@@ -441,7 +437,10 @@ async function inspect(identifier: VersionedTextDocumentIdentifier, isDuplicateI
         return;
     }
 
-    if (!canMakeRequest(uri)) {
+    if (!checkTrackedDocument(uri)) {
+        return;
+    }
+    if (!checkRateLimit()) {
         if (!hasLoggedErrorInCurrentWindow) {
             sendLimitExceededNotification();
         }
@@ -483,12 +482,10 @@ async function inspect(identifier: VersionedTextDocumentIdentifier, isDuplicateI
         let message = err?.response?.data?.reason || err.message;
         let state: Status = Status.fail;
         if (message.includes('Too many requests')) {
-            if (!canMakeRequest(uri)) {
-                if (!hasLoggedErrorInCurrentWindow) {
-                    sendLimitExceededNotification();
-                }
-                return;
+            if (!hasLoggedErrorInCurrentWindow) {
+                sendLimitExceededNotification();
             }
+            return;
         }
         // Clear problems
         sendDiagnostics([]);
